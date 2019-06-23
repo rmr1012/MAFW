@@ -1,3 +1,8 @@
 BUILD
 mbed-os
 mbed_settings.pyc
+.DS_Store
+*.pyc
+BUILD
+*.swp
+
