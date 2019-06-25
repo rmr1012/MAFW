@@ -1,6 +1,6 @@
 {
     "GCC_ARM": {
-        "common": ["-D BRD_FRDM","-D ARCH_K66","-c", "-Wall", "-Wextra", "-fexceptions",
+        "common": ["-D ARCH_K66","-c", "-Wall", "-Wextra", "-fexceptions",
                    "-Wno-unused-parameter", "-Wno-missing-field-initializers",
                    "-fmessage-length=0", "-fno-exceptions", "-fno-builtin",
                    "-ffunction-sections", "-fdata-sections", "-funsigned-char",

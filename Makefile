@@ -18,3 +18,5 @@ dev:
 
 deploy:
 	cp $(DISTPATH)/DEV/MAFW.bin /Volumes/NODE_F303ZE
+clean:
+	rm -rf $(BUILDPATH)

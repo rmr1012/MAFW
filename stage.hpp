@@ -15,7 +15,7 @@ class Stage{
     float getVoltage();
     float getCurrent();
     // commands
-    bool armStage(); // 1 success, 0 fail
+    void armStage(); // 1 success, 0 fail
   private:
     void triggerISR();
     void discharge();
@@ -24,7 +24,7 @@ class Stage{
     void driveLow();
     Meter* meter;
 
-    void armed=false;
+    bool armed=false;
     int state=0;
 
     int id;

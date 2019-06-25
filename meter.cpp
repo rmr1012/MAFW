@@ -33,9 +33,10 @@ void Meter::cp1dISR(){
 void Meter::cp2uISR(){
   cp2u=timer.read_us();
   printf("cp2uISR\n");
+  triggerFunc();
 }
 void Meter::cp2dISR(){
   cp2d=timer.read_us();
   printf("cp2dISR\n");
-  triggerFunc();
+
 }
