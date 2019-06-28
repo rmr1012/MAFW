@@ -15,8 +15,15 @@ dev:
 	mkdir -p $(DISTPATH)
 	mkdir -p $(DISTPATH)/DEV/
 	cp $(BUILDPATH)/NUCLEO_F303ZE/GCC_ARM-PROFILE/MAFW.bin $(DISTPATH)/DEV/
+df:
+	@echo "making for dev"
+	$(PYTHONPATH) $(MBEDCLI) $(MBEDARGS) --target K66F --profile profile.json
+	mkdir -p $(DISTPATH)
+	mkdir -p $(DISTPATH)/DEV/
+	cp $(BUILDPATH)/K66F/GCC_ARM-PROFILE/MAFW.bin $(DISTPATH)/DEV/
 
 deploy:
-	cp $(DISTPATH)/DEV/MAFW.bin /Volumes/NODE_F303ZE
+	-cp $(DISTPATH)/DEV/MAFW.bin /Volumes/NODE_F303ZE
+	cp $(DISTPATH)/DEV/MAFW.bin /Volumes/FRDM-K66FJ
 clean:
 	rm -rf $(BUILDPATH)

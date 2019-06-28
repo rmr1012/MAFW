@@ -8,13 +8,32 @@
 
 #ifndef machine_hpp
 #define machine_hpp
-
+#include "mbed.h"
 #include <stdio.h>
-
 #include <vector>
+#include <string>
+#include <utility>
+
+class Inarticulate{
+public:
+
+    static void bprintf(const char * inStr){
+        buffer+=inStr;
+    }
+    static string getBuffer(){
+        string outbuf=buffer;
+        buffer="";
+        return outbuf;
+    }
+    static bool isReady(){
+        return buffer != "";
+    }
+private:
+    static string buffer;
+};
 
 class State;
-class Machine{
+class Machine: public Inarticulate{
     public:
         Machine();
         // InterruptIn* armSwitch;
@@ -28,7 +47,7 @@ class Machine{
         void discharge();
 };
 
-class State {
+class State : public Inarticulate{
     public:
         virtual void idle(Machine *m);
         virtual void charging(Machine *m);
@@ -40,37 +59,37 @@ class State {
 class IDLE: public State
 {
     public:
-        IDLE(){printf( "   IDLE-ctor\n");};
-        ~IDLE(){printf( "   IDLE-dtor\n");};
+        IDLE(){bprintf( "   IDLE-ctor\n");};
+        ~IDLE(){bprintf( "   IDLE-dtor\n");};
         void charging(Machine *m);
 };
 class CHARGING: public State
 {
     public:
-        CHARGING(){printf( "   CHARGING-ctor\n");};
-        ~CHARGING(){printf( "   CHARGING-dtor\n");};
+        CHARGING(){bprintf( "   CHARGING-ctor\n");};
+        ~CHARGING(){bprintf( "   CHARGING-dtor\n");};
         void standby(Machine *m);
 };
 class STANDBY: public State
 {
     public:
-        STANDBY(){printf( "   STANDBY-ctor\n");};
-        ~STANDBY(){printf( "   STANDBY-dtor\n");};
+        STANDBY(){bprintf( "   STANDBY-ctor\n");};
+        ~STANDBY(){bprintf( "   STANDBY-dtor\n");};
         void loaded(Machine *m);
 };
 class LOADED: public State
 {
     public:
-        LOADED(){printf( "   LOADED-ctor\n");
-        };~LOADED(){printf( "   LOADED-dtor\n");};
+        LOADED(){bprintf( "   LOADED-ctor\n");
+        };~LOADED(){bprintf( "   LOADED-dtor\n");};
         void discharge(Machine *m);
 };
 
 class DISCHARGE: public State
 {
 public:
-    DISCHARGE(){printf( "   DISCHARGE-ctor\n");};
-    ~DISCHARGE(){printf( "   DISCHARGE-dtor\n");};
+    DISCHARGE(){bprintf( "   DISCHARGE-ctor\n");};
+    ~DISCHARGE(){bprintf( "   DISCHARGE-dtor\n");};
     void idle(Machine *m);
 };
 

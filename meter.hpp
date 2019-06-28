@@ -3,12 +3,13 @@
 #include <map>
 #include <regex>
 #include <vector>
+#include "terminal.hpp"
 //#include <NonCopyable.h>
 
 
 class Meter : NonCopyable<Meter>{
   public:
-    Meter(int ,PinName , PinName );
+    Meter(serialTerminal* theTerm ,int ,PinName , PinName );
     int getID();
     float getVelocity();
     void resetMeter();
@@ -25,7 +26,8 @@ class Meter : NonCopyable<Meter>{
     InterruptIn* cp1;
     InterruptIn* cp2;
     Timer timer;
-    
+    serialTerminal* theTerm;
+
     int cp1u; //check point 1 positive edge
     int cp1d; //check point 1 negative edge
     int cp2u; //check point 2 positive edge

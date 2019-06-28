@@ -1,7 +1,8 @@
 #include "stage.hpp"
 
 
-Stage::Stage(int in_id, Meter* pre_meter, float in_delay, PinName voltage, PinName current,PinName out_trigger, PinName in_trigger){
+Stage::Stage(serialTerminal* theTerm, int in_id, Meter* pre_meter, float in_delay, PinName voltage, PinName current,PinName out_trigger, PinName in_trigger):theTerm(theTerm){
+  // theTerm=inTerm;
   id=in_id;
   state=0;// default state to idle
   delay=in_delay;
@@ -14,13 +15,13 @@ Stage::Stage(int in_id, Meter* pre_meter, float in_delay, PinName voltage, PinNa
     triggerI = new InterruptIn(in_trigger);
     triggerI->rise(callback(this,&Stage::triggerISR));
     meter->assignTrigger(callback(this,&Stage::donothing));
-    printf("hand trig assigned\n");
+    theTerm->printf("hand trig assigned\n");
   }
   else{
     meter->assignTrigger(callback(this,&Stage::triggerISR));
-    printf("auto meter trig assigned\n");
+    theTerm->printf("auto meter trig assigned\n");
   }
-  printf("initializing stage %i\n",id);
+  theTerm->printf("initializing stage %i\n",id);
 }
 
 int Stage::getID(){
@@ -46,14 +47,14 @@ void Stage::driveLow(){
 }
 void Stage::discharge(){
   if(armed){
-    printf("in discharge\n");
-    printf("elapsed: %i  us\n",meter->cp2d-meter->cp2u);
+    theTerm->printf("in discharge\n");
+    theTerm->printf("elapsed: %i  us\n",meter->cp2d-meter->cp2u);
     outPosEdge.attach_us(callback(this,&Stage::driveHigh),100);
     outNegEdge.attach_us(callback(this,&Stage::driveLow), 600);
   }
 }
 void Stage::triggerISR(){
-  printf("in trigger ISR\n");
+  theTerm->printf("in trigger ISR\n");
   discharge();
 }
 

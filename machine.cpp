@@ -6,9 +6,8 @@
 //  Copyright © 2019 30. All rights reserved.
 //
 #include <stdio.h>
-
 #include "machine.hpp"
-
+string Inarticulate::buffer;
 Machine::Machine(){
     current = new IDLE(); // initial state
 };
@@ -20,31 +19,35 @@ void Machine::charging(){current->charging(this);}
 void Machine::standby(){current->standby(this);}
 void Machine::loaded(){current->loaded(this);}
 void Machine::discharge(){current->discharge(this);}
-
+void State::idle(Machine *m){}
+void State::standby(Machine *m){}
+void State::loaded(Machine *m){}
+void State::discharge(Machine *m){}
+void State::charging(Machine *m){}
 
 void IDLE::charging(Machine *m){
-    printf("   going from IDLE to CHARGINGn");
+    bprintf("   going from IDLE to CHARGING");
     m->setCurrent(new CHARGING());
     delete this;
 }
 void CHARGING::standby(Machine *m){
-    printf("   going from CHARGING to STANDBYn");
+    bprintf("   going from CHARGING to STANDBY");
     m->setCurrent(new STANDBY());
     delete this;
 }
 
 void STANDBY::loaded(Machine *m){
-    printf("   going from STANDBY to LOADEDn");
+    bprintf("   going from STANDBY to LOADED");
     m->setCurrent(new LOADED());
     delete this;
 }
 void LOADED::discharge(Machine *m){
-    printf("   going from LOADED to DISCHARGEn");
+    bprintf("   going from LOADED to DISCHARGE");
     m->setCurrent(new DISCHARGE());
     delete this;
 }
 void DISCHARGE::idle(Machine *m){
-    printf("   going from DISCHARGE to IDLEn");
+    bprintf("   going from DISCHARGE to IDLE");
     m->setCurrent(new IDLE());
     delete this;
 }

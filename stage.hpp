@@ -4,10 +4,11 @@
 #include <map>
 #include <regex>
 #include <vector>
+#include "terminal.hpp"
 
 class Stage{
   public:
-    Stage(int in_id, Meter* pre_meter, float in_delay, PinName voltage, PinName current,PinName out_trigger, PinName in_trigger=NC);
+    Stage(serialTerminal* theTerm ,int in_id, Meter* pre_meter, float in_delay, PinName voltage, PinName current,PinName out_trigger, PinName in_trigger=NC);
 
     // meta data
     int getID();
@@ -34,6 +35,7 @@ class Stage{
     InterruptIn*  triggerI;
     AnalogIn*     voltageADC;
     AnalogIn*     currentADC;
+    serialTerminal* theTerm;
 
     Timeout outPosEdge;
     Timeout outNegEdge;
