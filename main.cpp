@@ -19,6 +19,7 @@ DigitalOut led3(LED3);
 // Serial pc(PB_6,PB_7);
 // Serial debugUART(PTC15,PTC14);
 serialTerminal theTerm(USBTX,USBRX,115200);// tx, rx
+RawSerial debugPort(PB_6,PB_7,115200);
 Timer t;
 
 
@@ -34,7 +35,7 @@ void flip(){
 }
 int main()
 {
-
+    theTerm.setDebug(&debugPort);
     t.start();
     // SystemReport sys_state( SLEEP_TIME * PRINT_AFTER_N_LOOPS /* Loop delay time in ms */);
     int count=0;
@@ -44,7 +45,9 @@ int main()
     stage0.armStage();
 
     theTerm.printf("hello world\n");
+    wait(.05);
     theTerm.printDebug("Hello debug");
+    theTerm.printf("hello world2\n");
     // theTerm.attach(callback(&flip));
     while (true) { // polling loop yoooo
         wait(.2); // static delay

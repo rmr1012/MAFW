@@ -3,13 +3,13 @@
 #include "mbed.h"
 //Serial* serialTerminal::debug; // tx, rx
 //Serial* serialTerminal::term;
-bool serialTerminal::commandReady;
-bool serialTerminal::ctrlc=false;
-string serialTerminal::serialBuffer;
-string serialTerminal::commandBuffer;
-recallBuffer* serialTerminal::myBuffer;// recall last 10 commands
-serialTerminal* serialTerminal::theTerm=nullptr;
-RawSerial* serialTerminal::debug = new RawSerial(PB_6,PB_7,115200);
+// bool serialTerminal::commandReady;
+// bool serialTerminal::ctrlc=false;
+// string serialTerminal::serialBuffer;
+// string serialTerminal::commandBuffer;
+// recallBuffer* serialTerminal::myBuffer;// recall last 10 commands
+// serialTerminal* serialTerminal::theTerm=nullptr;
+// RawSerial* serialTerminal::debug = new RawSerial(PB_6,PB_7,115200);
 
 // Callback<void()> serialTerminal::commandCallback;
 //void serialTerminal::serialIRQHandler();
@@ -88,19 +88,21 @@ serialTerminal::serialTerminal(PinName tx,PinName rx,int inbaud):RawSerial(tx,rx
   myBuffer= new recallBuffer(10);
   theTerm=this;
   // theTerm->printf("before IRQ attach\n");
-  theTerm->attach(serialIRQHandler);
+  theTerm->attach(callback(this,&serialTerminal::serialIRQHandler));
   // theTerm->printf("after IRQ attach\n");
   theTerm->baud(inbaud);
   theTerm->printf(banner.c_str());
 
+  // RawSerial* debug = new RawSerial(PB_6,PB_7,115200);
 
   theTerm->printf("\e[4;h");
   // debug=this;
-
+}
+void serialTerminal::setDebug(RawSerial* inSerial){
+  debug=inSerial;
 }
 
 void serialTerminal::serialIRQHandler(){
-
 
     static bool arrowWatcher5B;
     static bool arrowWatcher;
