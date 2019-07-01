@@ -1,3 +1,13 @@
+//
+//  meter.hpp
+//  FSM_test
+//
+//  Created by Dennis Ren on 6/23/19.
+//  Copyright © 2019 30. All rights reserved.
+//
+#ifndef METER_H
+#define METER_H
+
 #include <string>
 #include "mbed.h"
 #include <map>
@@ -35,3 +45,6 @@ class Meter : NonCopyable<Meter>{
 
 friend class Stage;
 };
+
+
+#endif

@@ -6,8 +6,8 @@
 #include "utilities.hpp"
 
 
-DigitalOut led1(LED2);
-
+DigitalOut led1(LED1);
+DigitalOut led3(LED3);
 
 // AnalogIn   ch0(PA_0);
 // AnalogIn   ch1(PA_1);
@@ -24,9 +24,14 @@ Timer t;
 
 int tik,tok;
 void parseCommand(string);
-EventQueue queue;
 Machine MA;
-
+// Create a queue that can hold a maximum of 32 events
+// static EventQueue queue(32 * EVENTS_EVENT_SIZE);
+// // Create a thread that'll run the event queue's dispatch function
+// static Thread t;
+void flip(){
+  led3=!led3;
+}
 int main()
 {
 
@@ -39,7 +44,8 @@ int main()
     stage0.armStage();
 
     theTerm.printf("hello world\n");
-
+    theTerm.printDebug("Hello debug");
+    // theTerm.attach(callback(&flip));
     while (true) { // polling loop yoooo
         wait(.2); // static delay
         // wdt_timer.start(WDT_LENGTH); // reset WDT timer
@@ -59,11 +65,12 @@ int main()
     }
 }
 void parseCommand(string cmd){
-  if (strInStr("1",cmd)){
-    theTerm.printf("charging cmd");
-    MA.charging();
+  theTerm.printDebug(cmd);
+  if (strInStr("STATE",cmd)){
+    theTerm.printf("\n");
+    theTerm.printf(MA.report().c_str());
   }
-  if (strInStr("2",cmd)){
+  if (strInStr("SYSTEMSTAT",cmd)){
     theTerm.printf("standby cmd");
     MA.standby();
   }

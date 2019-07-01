@@ -1,5 +1,5 @@
-#ifndef IHMDIAGSTERMINAL_H
-#define IHMDIAGSTERMINAL_H
+#ifndef TERMINAL_H
+#define TERMINAL_H
 
 #include <string>
 #include <deque>
@@ -24,10 +24,13 @@ class recallBuffer{
 class serialTerminal: public RawSerial{
 public:
   serialTerminal(PinName,PinName,int);// tx, rx
-  
+  static bool ctrlc;
   static void serialIRQHandler();
   static serialTerminal* theTerm;
   static bool commandReady;
+
+  // static Callback<void()> commandCallback;
+  // static void attach(Callback<void()>);
 
   static string serialBuffer;
   static string commandBuffer;

@@ -1,5 +1,5 @@
-#ifndef IHMDIAGSUTILITIES_H
-#define IHMDIAGSUTILITIES_H
+#ifndef UTILITIES_H
+#define UTILITIES_H
 #include <cstring>
 #include <string>
 #include <vector>

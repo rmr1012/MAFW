@@ -5,14 +5,18 @@
 //  Created by Dennis Ren on 6/23/19.
 //  Copyright © 2019 30. All rights reserved.
 //
+#ifndef MACHINE_H
+#define MACHINE_H
 
-#ifndef machine_hpp
-#define machine_hpp
+
 #include "mbed.h"
 #include <stdio.h>
 #include <vector>
 #include <string>
 #include <utility>
+#include "stage.hpp"
+
+
 
 class Inarticulate{
 public:
@@ -45,6 +49,12 @@ class Machine: public Inarticulate{
         void standby();
         void loaded();
         void discharge();
+        void appendStage(Stage* );
+        void appendMeter(Meter* );
+        string report();
+      private:
+        std::vector<Stage*> stages;
+        std::vector<Meter*> meters;
 };
 
 class State : public Inarticulate{
@@ -54,6 +64,8 @@ class State : public Inarticulate{
         virtual void standby(Machine *m);
         virtual void loaded(Machine *m);
         virtual void discharge(Machine *m);
+        string name;
+        virtual string report();
 };
 
 class IDLE: public State
@@ -62,6 +74,8 @@ class IDLE: public State
         IDLE(){bprintf( "   IDLE-ctor\n");};
         ~IDLE(){bprintf( "   IDLE-dtor\n");};
         void charging(Machine *m);
+        string report();
+        string name="idle";
 };
 class CHARGING: public State
 {
@@ -69,6 +83,8 @@ class CHARGING: public State
         CHARGING(){bprintf( "   CHARGING-ctor\n");};
         ~CHARGING(){bprintf( "   CHARGING-dtor\n");};
         void standby(Machine *m);
+        string report();
+        string name="charging";
 };
 class STANDBY: public State
 {
@@ -76,6 +92,8 @@ class STANDBY: public State
         STANDBY(){bprintf( "   STANDBY-ctor\n");};
         ~STANDBY(){bprintf( "   STANDBY-dtor\n");};
         void loaded(Machine *m);
+        string report();
+        string name="standby";
 };
 class LOADED: public State
 {
@@ -83,6 +101,8 @@ class LOADED: public State
         LOADED(){bprintf( "   LOADED-ctor\n");
         };~LOADED(){bprintf( "   LOADED-dtor\n");};
         void discharge(Machine *m);
+        string report();
+        string name="loaded";
 };
 
 class DISCHARGE: public State
@@ -91,6 +111,8 @@ public:
     DISCHARGE(){bprintf( "   DISCHARGE-ctor\n");};
     ~DISCHARGE(){bprintf( "   DISCHARGE-dtor\n");};
     void idle(Machine *m);
+    string report();
+    string name="discharge";
 };
 
 #endif /* machine_hpp */

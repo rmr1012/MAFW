@@ -1,3 +1,13 @@
+//
+//  meter.hpp
+//  FSM_test
+//
+//  Created by Dennis Ren on 6/23/19.
+//  Copyright © 2019 30. All rights reserved.
+//
+#ifndef STAGE_H
+#define STAGE_H
+
 #include <string>
 #include "mbed.h"
 #include "meter.hpp"
@@ -41,3 +51,5 @@ class Stage{
     Timeout outNegEdge;
     friend class meter;
 };
+
+#endif

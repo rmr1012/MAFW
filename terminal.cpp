@@ -4,11 +4,14 @@
 //Serial* serialTerminal::debug; // tx, rx
 //Serial* serialTerminal::term;
 bool serialTerminal::commandReady;
+bool serialTerminal::ctrlc=false;
 string serialTerminal::serialBuffer;
 string serialTerminal::commandBuffer;
 recallBuffer* serialTerminal::myBuffer;// recall last 10 commands
 serialTerminal* serialTerminal::theTerm=nullptr;
-RawSerial* serialTerminal::debug = new RawSerial(PC_10,PC_11,115200);
+RawSerial* serialTerminal::debug = new RawSerial(PB_6,PB_7,115200);
+
+// Callback<void()> serialTerminal::commandCallback;
 //void serialTerminal::serialIRQHandler();
 string banner=
 "\nhello!!!"
@@ -50,7 +53,9 @@ void serialTerminal::printDebug(const char* inStr){
   debug->printf("[DEBUG] ");
   debug->printf(inStr);
 }
-
+// void serialTerminal::attach(Callback<void()> inFunc){
+//   commandCallback=inFunc;
+// }
 
 
 recallBuffer::recallBuffer(uint8_t inMax):max(inMax){
@@ -88,8 +93,8 @@ serialTerminal::serialTerminal(PinName tx,PinName rx,int inbaud):RawSerial(tx,rx
   theTerm->baud(inbaud);
   theTerm->printf(banner.c_str());
 
-  theTerm->putc(0x1b);
-  theTerm->printf("[4;h");
+
+  theTerm->printf("\e[4;h");
   // debug=this;
 
 }
@@ -97,72 +102,73 @@ serialTerminal::serialTerminal(PinName tx,PinName rx,int inbaud):RawSerial(tx,rx
 void serialTerminal::serialIRQHandler(){
 
 
-    static bool arrowWatch5B;
-    static bool arrowWatch;
-    static uint8_t cursor;
+    static bool arrowWatcher5B;
+    static bool arrowWatcher;
+    static uint8_t cursor; //horizontal position
     static uint8_t upkeys;
     while(theTerm->readable()){
         char theChar=(char) theTerm->getc();
         debug->printf("%02X\n", theChar);
 
-        if(theChar=='\b'&&serialBuffer.size()>0)
+        if(theChar=='\b'&& serialBuffer.size()>0 && cursor>0) //BACKSPACE
         {
-          //set to replacement mode
-          theTerm->putc(0x1b);
-          theTerm->printf("[4;l");
-
           theTerm->putc(theChar); //print back what you typed in
-          theTerm->printf(" \b");
-          serialBuffer.pop_back();//  pop last
-          cursor--;
-          // debug->printf("len: %u\n",length);
-          // debug->printf("buff: ");
-          // printDebug(serialBuffer);
-          // debug->printf("\n");
+          theTerm->printf("\e[s"); // save cursor position
 
-          // set Insert mode
-          theTerm->putc(0x1b);
-          theTerm->printf("[4;h");
+          cursor--;
+          serialBuffer.erase(cursor,1);
+
+          theTerm->printf("\rterm$ ");
+          theTerm->printf("\e[K");
+          theTerm->printf(serialBuffer.c_str());
+          theTerm->printf(" ");
+
+          theTerm->printf("\e[u");// restore cursor position
+
+        }
+        else if(theChar==0x03){//ctrl+c pressed
+          theTerm->printf("\nterm$ ");
+          ctrlc=true;
         }
         else if(theChar==arrowSeq1){ // got ESC char
-          arrowWatch5B=true;
+          arrowWatcher5B=true;
           //printDebug("seq1\n");
         }
-        else if(theChar==arrowSeq2&&arrowWatch5B){ // ESC got pressed previously
-          arrowWatch5B=false;
-          arrowWatch=true;
+        else if(theChar==arrowSeq2&&arrowWatcher5B){ // ESC got pressed previously
+          arrowWatcher5B=false;
+          arrowWatcher=true;
           printDebug("seq2\n");
         }
-        else if((theChar==LEFTKEY||theChar==RIGHTKEY||theChar==UPKEY||theChar==DOWNKEY)&&arrowWatch){
+        else if((theChar==LEFTKEY||theChar==RIGHTKEY||theChar==UPKEY||theChar==DOWNKEY)&&arrowWatcher){
           printDebug("seq3\n");
-          arrowWatch=false;
+          arrowWatcher=false;
 
           if(theChar==LEFTKEY){
             printDebug("left key detected\n");
             if(cursor>0){
               cursor--;
-              theTerm->putc(0x1b);
-              theTerm->printf("[1;D");
+
+              theTerm->printf("\e[1;D");
             }
           }
           else if(theChar==RIGHTKEY){
             if(cursor<serialBuffer.length()){
               cursor++;
-              theTerm->putc(0x1b);
-              theTerm->printf("[1;C");
+
+              theTerm->printf("\e[1;C");
             }
             printDebug("right key detected\n");
           }
           else if(theChar==UPKEY){
             printDebug("up key detected\n");
-            theTerm->putc(0x1b);
-            theTerm->printf("[1;M"); // clear current row
+
+            theTerm->printf("\e[1;M\r"); // clear current row
 
             serialBuffer=myBuffer->at(upkeys);
             upkeys++;
 
-            theTerm->putc(0x1b);
-            theTerm->printf("[0;`"); // bounce cursor back to head
+
+            theTerm->printf("\e[0;`"); // bounce cursor back to head
 
             theTerm->printf("term$ ");
             theTerm->printf(serialBuffer.c_str());
@@ -170,15 +176,15 @@ void serialTerminal::serialIRQHandler(){
           }
           else if(theChar==DOWNKEY){
             printDebug("down key detected\n");
-            if(upkeys>0){
+            if(upkeys>=0){
 
 
             upkeys--;
             serialBuffer=myBuffer->at(upkeys);
-            theTerm->putc(0x1b);
-            theTerm->printf("[1;M"); // clear current row
-            theTerm->putc(0x1b);
-            theTerm->printf("[0;`"); // bounce cursor back to head
+
+            theTerm->printf("\e[1;M\r"); // clear current row // bounce cursor back to head
+
+            // theTerm->printf("\e[0;`"); // bounce cursor back to head
 
             theTerm->printf("term$ ");
             theTerm->printf(serialBuffer.c_str());
@@ -188,10 +194,10 @@ void serialTerminal::serialIRQHandler(){
           }
         }
 
-        else if(theChar!='\b'&&theChar!='\t'&&theChar!='\r'&&theChar!='\n'){// do not append control characters
-          // arrowWatch sequece failed
-          arrowWatch=false;
-          arrowWatch5B=false;
+        else if(theChar>=32){//theChar!='\b'&&theChar!='\t'&&theChar!='\r'&&theChar!='\n'){// do not append control characters
+          // arrowWatcher sequece failed
+          arrowWatcher=false;
+          arrowWatcher5B=false;
           theTerm->putc(theChar); //print back what you typed in
           serialBuffer.insert(cursor,1,theChar); // append latest char to string
 
@@ -203,10 +209,11 @@ void serialTerminal::serialIRQHandler(){
           debug->printf("\n");
 
         }
-        if(theChar=='\n'){
+        if(theChar=='\n' | theChar=='\r'){
           if(serialBuffer.size()>1){
             commandBuffer=toUpper(serialBuffer);
             commandReady=true;
+            // commandCallback();
             myBuffer->add(serialBuffer);
             serialBuffer="";
             cursor=0;
