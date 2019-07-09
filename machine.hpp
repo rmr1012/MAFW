@@ -15,26 +15,36 @@
 #include <string>
 #include <utility>
 #include "stage.hpp"
+#include "utilities.hpp"
 
 
-
-class Inarticulate{
-public:
-
-    static void bprintf(const char * inStr){
-        buffer+=inStr;
-    }
-    static string getBuffer(){
-        string outbuf=buffer;
-        buffer="";
-        return outbuf;
-    }
-    static bool isReady(){
-        return buffer != "";
-    }
-private:
-    static string buffer;
-};
+// class Inarticulate{
+// public:
+//
+//     // static void bprintf(const char * inStr){
+//     //     buffer+=inStr;
+//     // }
+//     static void bprintf(const char *format, ...){
+//         va_list args;
+//         va_start(args, format);
+//         char buff[100];
+//         vsnprintf(buff, sizeof buff, format, args);
+//         // std::string buffAsStdStr = buff;
+//         va_end(args);
+//         buffer+=buff;
+//     }
+//
+//     static std::string getBuffer(){
+//         std::string outbuf=buffer;
+//         buffer="";
+//         return outbuf;
+//     }
+//     static bool isReady(){
+//         return buffer != "";
+//     }
+// private:
+//     static std::string buffer;
+// };
 
 class State;
 class Machine: public Inarticulate{
