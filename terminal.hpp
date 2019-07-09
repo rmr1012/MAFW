@@ -24,20 +24,21 @@ class recallBuffer{
 class serialTerminal: public RawSerial{
 public:
   serialTerminal(PinName,PinName,int);// tx, rx
-  bool ctrlc;
-  void serialIRQHandler();
-  serialTerminal* theTerm;
-  bool commandReady;
+  static bool ctrlc;
+  static void serialIRQHandler();
+  static serialTerminal* theTerm;
+  static bool commandReady;
 
-  void setDebug(RawSerial *);
+  // static Callback<void()> commandCallback;
+  // static void attach(Callback<void()>);
 
-  string serialBuffer;
-  string commandBuffer;
-  recallBuffer* myBuffer;// recall last 10 commands
-  RawSerial* debug;
-  void printDebug(string);
-  void printDebug(const char*);
-  void printStr(string&);
+  static string serialBuffer;
+  static string commandBuffer;
+  static recallBuffer* myBuffer;// recall last 10 commands
+  static RawSerial* debug;
+  static void printDebug(string);
+  static void printDebug(const char*);
+  static void printStr(string&);
 };
 
 
