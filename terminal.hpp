@@ -30,6 +30,13 @@ public:
   bool commandReady;
 
   void setDebug(RawSerial *);
+  Thread* commandThread;
+  void commandWorker();
+
+  EventQueue queue;
+
+  void attachParser(Callback<void(string)>);
+  Callback<void(string)> commandFunc;
 
   string serialBuffer;
   string commandBuffer;
