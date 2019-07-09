@@ -5,6 +5,7 @@
 #include "terminal.hpp"
 #include "utilities.hpp"
 
+
 DigitalOut led1(LED1);
 DigitalOut led3(LED3);
 
@@ -17,33 +18,26 @@ DigitalOut led3(LED3);
 // InterruptIn loadMeter(PC_15);
 // Serial pc(PB_6,PB_7);
 // Serial debugUART(PTC15,PTC14);
-EventQueue *queue = mbed_event_queue();
 serialTerminal theTerm(USBTX,USBRX,115200);// tx, rx
 RawSerial debugPort(PB_6,PB_7,115200);
 Timer t;
-Ticker articulator;
 
-std::string Inarticulate::buffer; // initialize buffer for all inarticulate classes
 
 int tik,tok;
 void parseCommand(string);
 Machine MA;
-// SystemReport sys_state( 2000 /* Loop delay time in ms */);
-
 // Create a queue that can hold a maximum of 32 events
 // static EventQueue queue(32 * EVENTS_EVENT_SIZE);
 // // Create a thread that'll run the event queue's dispatch function
 // static Thread t;
-void articulate();
 void flip(){
   led3=!led3;
 }
-
 int main()
 {
-    // SystemReport sys_state(2000 /* Loop delay time in ms */);
     theTerm.setDebug(&debugPort);
     t.start();
+    // SystemReport sys_state( SLEEP_TIME * PRINT_AFTER_N_LOOPS /* Loop delay time in ms */);
     int count=0;
 
     Meter meter0(&theTerm,0, PC_14, PC_13);
@@ -54,40 +48,34 @@ int main()
     wait(.05);
     theTerm.printDebug("Hello debug");
     theTerm.printf("hello world2\n");
-    theTerm.attachParser(parseCommand);
     // theTerm.attach(callback(&flip));
-    articulator.attach(articulate,0.1);
-    queue->dispatch_forever();
     while (true) { // polling loop yoooo
         wait(.2); // static delay
         // wdt_timer.start(WDT_LENGTH); // reset WDT timer
         led1=!led1; // life LED
-        // if(theTerm.commandReady){
-        //   theTerm.printDebug("calling parsing command...\n");
-        //   theTerm.commandReady=false;
-        //   parseCommand(theTerm.commandBuffer);
-        //   theTerm.commandBuffer="";
-        //   theTerm.printf("\nterm$ ");
-        // }
-        // if(1)//Inarticulate::isReady()
-        // {
-        //   // theTerm.printf("\ncool stuff$ ");
-        //   theTerm.printf(Inarticulate::getBuffer().c_str());
-        // }
+        if(theTerm.commandReady){
+          theTerm.printDebug("calling parsing command...\n");
+          theTerm.commandReady=false;
+          parseCommand(theTerm.commandBuffer);
+          theTerm.commandBuffer="";
+          theTerm.printf("\nterm$ ");
+        }
+        if(1)//Inarticulate::isReady()
+        {
+          // theTerm.printf("\ncool stuff$ ");
+          theTerm.printf(Inarticulate::getBuffer().c_str());
+        }
     }
-}
-void articulate(){
-  flip();
-  theTerm.printf(Inarticulate::getBuffer().c_str());
 }
 void parseCommand(string cmd){
   theTerm.printDebug(cmd);
   if (strInStr("STATE",cmd)){
+    theTerm.printf("\n");
     theTerm.printf(MA.report().c_str());
   }
-  if (strInStr("SYS",cmd)){
-    theTerm.printf("reporting sys_state\n");
-    // queue->call(&sys_state,&SystemReport::report_state);
+  if (strInStr("SYSTEMSTAT",cmd)){
+    theTerm.printf("standby cmd");
+    MA.standby();
   }
   if (strInStr("3",cmd)){
     theTerm.printf("loaded cmd");
@@ -102,3 +90,27 @@ void parseCommand(string cmd){
     MA.idle();
   }
 }
+// #include "mbed.h"
+//
+// DigitalOut led1(LED1);
+// DigitalOut led2(LED2);
+//
+// RawSerial pc(USBTX, USBRX);
+//
+// void callback_ex() {
+//     // Note: you need to actually read from the serial to clear the RX interrupt
+//     char poop = pc.getc();
+//     pc.putc('a');
+//     pc.printf("yoni\n" );
+//     led1 = !led1;
+// }
+//
+// int main() {
+//     // printf("lingam\n" );
+//     pc.attach(&callback_ex);
+//
+//     while (1) {
+//         led2 = !led2;
+//         wait(0.5);
+//     }
+// }

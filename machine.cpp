@@ -7,7 +7,7 @@
 //
 #include <stdio.h>
 #include "machine.hpp"
-// string Inarticulate::buffer;
+string Inarticulate::buffer;
 Machine::Machine(){
     current = new IDLE(); // initial state
 };

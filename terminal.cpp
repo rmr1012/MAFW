@@ -8,7 +8,7 @@
 // string serialTerminal::serialBuffer;
 // string serialTerminal::commandBuffer;
 // recallBuffer* serialTerminal::myBuffer;// recall last 10 commands
-// serialTerminal* serialTerminal::this=nullptr;
+// serialTerminal* serialTerminal::theTerm=nullptr;
 // RawSerial* serialTerminal::debug = new RawSerial(PB_6,PB_7,115200);
 
 // Callback<void()> serialTerminal::commandCallback;
@@ -43,7 +43,7 @@ char arrowSeq2=0x5b;
 // char arrowSeq1=0xc3;
 // char arrowSeq2=0xa0;
 void serialTerminal::printStr(string& inStr){
-  this->printf(inStr.c_str());
+  theTerm->printf(inStr.c_str());
 }
 void serialTerminal::printDebug(string inStr){
   debug->printf("[DEBUG] ");
@@ -86,31 +86,17 @@ size_t recallBuffer::getSize(){
 serialTerminal::serialTerminal(PinName tx,PinName rx,int inbaud):RawSerial(tx,rx){// tx, rx
   //term=new Serial(tx,rx);
   myBuffer= new recallBuffer(10);
-  // this->printf("before IRQ attach\n");
-  this->attach(callback(this,&serialTerminal::serialIRQHandler));
-  // this->printf("after IRQ attach\n");
-  this->baud(inbaud);
-  this->printf(banner.c_str());
+  theTerm=this;
+  // theTerm->printf("before IRQ attach\n");
+  theTerm->attach(callback(this,&serialTerminal::serialIRQHandler));
+  // theTerm->printf("after IRQ attach\n");
+  theTerm->baud(inbaud);
+  theTerm->printf(banner.c_str());
 
-  // commandThread = new Thread(callback(this,&serialTerminal::commandWorker));
-  commandThread = new Thread(callback(&queue, &EventQueue::dispatch_forever));
   // RawSerial* debug = new RawSerial(PB_6,PB_7,115200);
 
-  this->printf("\e[4;h");
+  theTerm->printf("\e[4;h");
   // debug=this;
-}
-void serialTerminal::attachParser(Callback<void(string)> inFunc){
-  commandFunc=inFunc;
-}
-void serialTerminal::commandWorker(){
-
-    this->printDebug("working...\n");
-    string copyBuffer=commandBuffer;
-    commandReady=false;
-    commandBuffer="";
-    this->printf("\n");
-    commandFunc(copyBuffer);
-    this->printf("term$ ");
 }
 void serialTerminal::setDebug(RawSerial* inSerial){
   debug=inSerial;
@@ -122,28 +108,28 @@ void serialTerminal::serialIRQHandler(){
     static bool arrowWatcher;
     static uint8_t cursor; //horizontal position
     static uint8_t upkeys;
-    while(this->readable()){
-        char theChar=(char) this->getc();
+    while(theTerm->readable()){
+        char theChar=(char) theTerm->getc();
         debug->printf("%02X\n", theChar);
 
         if(theChar=='\b'&& serialBuffer.size()>0 && cursor>0) //BACKSPACE
         {
-          this->putc(theChar); //print back what you typed in
-          this->printf("\e[s"); // save cursor position
+          theTerm->putc(theChar); //print back what you typed in
+          theTerm->printf("\e[s"); // save cursor position
 
           cursor--;
           serialBuffer.erase(cursor,1);
 
-          this->printf("\rterm$ ");
-          this->printf("\e[K");
-          this->printf(serialBuffer.c_str());
-          this->printf(" ");
+          theTerm->printf("\rterm$ ");
+          theTerm->printf("\e[K");
+          theTerm->printf(serialBuffer.c_str());
+          theTerm->printf(" ");
 
-          this->printf("\e[u");// restore cursor position
+          theTerm->printf("\e[u");// restore cursor position
 
         }
         else if(theChar==0x03){//ctrl+c pressed
-          this->printf("\nterm$ ");
+          theTerm->printf("\nterm$ ");
           ctrlc=true;
         }
         else if(theChar==arrowSeq1){ // got ESC char
@@ -164,30 +150,30 @@ void serialTerminal::serialIRQHandler(){
             if(cursor>0){
               cursor--;
 
-              this->printf("\e[1;D");
+              theTerm->printf("\e[1;D");
             }
           }
           else if(theChar==RIGHTKEY){
             if(cursor<serialBuffer.length()){
               cursor++;
 
-              this->printf("\e[1;C");
+              theTerm->printf("\e[1;C");
             }
             printDebug("right key detected\n");
           }
           else if(theChar==UPKEY){
             printDebug("up key detected\n");
 
-            this->printf("\e[1;M\r"); // clear current row
+            theTerm->printf("\e[1;M\r"); // clear current row
 
             serialBuffer=myBuffer->at(upkeys);
             upkeys++;
 
 
-            this->printf("\e[0;`"); // bounce cursor back to head
+            theTerm->printf("\e[0;`"); // bounce cursor back to head
 
-            this->printf("term$ ");
-            this->printf(serialBuffer.c_str());
+            theTerm->printf("term$ ");
+            theTerm->printf(serialBuffer.c_str());
             cursor=serialBuffer.length();
           }
           else if(theChar==DOWNKEY){
@@ -198,12 +184,12 @@ void serialTerminal::serialIRQHandler(){
             upkeys--;
             serialBuffer=myBuffer->at(upkeys);
 
-            this->printf("\e[1;M\r"); // clear current row // bounce cursor back to head
+            theTerm->printf("\e[1;M\r"); // clear current row // bounce cursor back to head
 
-            // this->printf("\e[0;`"); // bounce cursor back to head
+            // theTerm->printf("\e[0;`"); // bounce cursor back to head
 
-            this->printf("term$ ");
-            this->printf(serialBuffer.c_str());
+            theTerm->printf("term$ ");
+            theTerm->printf(serialBuffer.c_str());
             cursor=serialBuffer.length();
             }
 
@@ -214,7 +200,7 @@ void serialTerminal::serialIRQHandler(){
           // arrowWatcher sequece failed
           arrowWatcher=false;
           arrowWatcher5B=false;
-          this->putc(theChar); //print back what you typed in
+          theTerm->putc(theChar); //print back what you typed in
           serialBuffer.insert(cursor,1,theChar); // append latest char to string
 
           cursor++;
@@ -230,15 +216,13 @@ void serialTerminal::serialIRQHandler(){
             commandBuffer=toUpper(serialBuffer);
             commandReady=true;
             // commandCallback();
-            this->putc(theChar);
             myBuffer->add(serialBuffer);
             serialBuffer="";
             cursor=0;
             upkeys=0;
-            queue.call(this,&serialTerminal::commandWorker);
           }
           else{
-            this->printf("\nterm$ ");
+            theTerm->printf("\nterm$ ");
             serialBuffer="";
             cursor=0;
           }
