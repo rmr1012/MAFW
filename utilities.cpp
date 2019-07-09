@@ -1,5 +1,6 @@
 #include "utilities.hpp"
 
+
 std::vector<char> str2HexVec(std::string inStr, char deli){
 
     std::vector<char> hexvals;
