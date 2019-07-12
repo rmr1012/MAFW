@@ -25,8 +25,15 @@ class Stage{
     int getState(); // 0 idle, 1 triggered, 2 discharging
     float getVoltage();
     float getCurrent();
+    void printStats();
     // commands
     void armStage(); // 1 success, 0 fail
+
+    void setDelay(int inputDelay){triggerDelay=inputDelay;}
+    void setWidth(int inputWidth){pulseWidth=inputWidth;}
+
+    int getDelay(){return triggerDelay;}
+    int getWidth(){return pulseWidth;}
   private:
     void triggerISR();
     void discharge();
@@ -46,6 +53,9 @@ class Stage{
     AnalogIn*     voltageADC;
     AnalogIn*     currentADC;
     serialTerminal* theTerm;
+
+    int triggerDelay=100;
+    int pulseWidth=500;
 
     Timeout outPosEdge;
     Timeout outNegEdge;

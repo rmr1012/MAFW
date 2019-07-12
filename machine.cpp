@@ -40,7 +40,7 @@ void State::charging(Machine *m){}
 string State::report(){return "nothing to report\n";}
 
 void IDLE::charging(Machine *m){
-    bprintf("   going from IDLE to CHARGING");
+    printf("   going from IDLE to CHARGING\n");
     m->setCurrent(new CHARGING());
     delete this;
 }
@@ -52,7 +52,7 @@ string IDLE::report(){
   return report;
 }
 void CHARGING::standby(Machine *m){
-    bprintf("   going from CHARGING to STANDBY");
+    printf("   going from CHARGING to STANDBY\n");
     m->setCurrent(new STANDBY());
     delete this;
 }
@@ -64,7 +64,7 @@ string CHARGING::report(){
   return report;
 }
 void STANDBY::loaded(Machine *m){
-    bprintf("   going from STANDBY to LOADED");
+    printf("   going from STANDBY to LOADED\n");
     m->setCurrent(new LOADED());
     delete this;
 }
@@ -76,7 +76,7 @@ string STANDBY::report(){
   return report;
 }
 void LOADED::discharge(Machine *m){
-    bprintf("   going from LOADED to DISCHARGE");
+    printf("   going from LOADED to DISCHARGE\n");
     m->setCurrent(new DISCHARGE());
     delete this;
 }
@@ -88,7 +88,7 @@ string LOADED::report(){
   return report;
 }
 void DISCHARGE::idle(Machine *m){
-    bprintf("   going from DISCHARGE to IDLE");
+    printf("   going from DISCHARGE to IDLE\n");
     m->setCurrent(new IDLE());
     delete this;
 }

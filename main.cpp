@@ -10,11 +10,8 @@
 DigitalOut led1(LED1);
 DigitalOut led3(LED3);
 
-// AnalogIn   ch0(PA_0);
-// AnalogIn   ch1(PA_1);
-// AnalogIn   ch2(PA_2);
-// AnalogIn   ch3(PA_3);
-//
+
+
 // InterruptIn armSwitch(PB_10);
 // InterruptIn loadMeter(PC_15);
 
@@ -30,7 +27,10 @@ std::string Inarticulate::buffer; // initialize buffer for all inarticulate clas
 
 int tik,tok;
 void parseCommand(string);
+void parseStage(string inStr);
 Machine MA;
+Meter meter0(&theTerm,0, PC_14, PC_13);
+Stage stage0(&theTerm,0 , &meter0, 0.1 , PA_0 , PA_1 , PC_10 );
 
 #ifdef SYSSTATE
 SystemReport sys_state( 2000 /* Loop delay time in ms */);
@@ -52,8 +52,7 @@ int main()
     t.start();
     int count=0;
 
-    Meter meter0(&theTerm,0, PC_14, PC_13);
-    Stage stage0(&theTerm,0 , &meter0, 0.1 , PA_0 , PA_1 , PC_10 );
+
     stage0.armStage();
 
     theTerm.printf("hello world\n");
@@ -81,38 +80,68 @@ void parseCommand(string cmd){
   #ifdef TERMDEBUG
   theTerm.printDebug(cmd);
   #endif
-  if (strInStr("STATE",cmd)){
+  if (strInStr("STAGES",cmd)){ // print all stages
+    printf("Stage\tDelay\tWidth\tArm\tState\tV\tI\tSpeed\n");
+    stage0.printStats();
+  }
+  else if(strInStr("STAGE ",cmd)){ // print all stages
+    parseStage(cmd);
+  }
+  else if (strInStr("STATE",cmd)){
     theTerm.printf(MA.report().c_str());
   }
 
-  if (strInStr("CPU",cmd)){
+  else if (strInStr("CPU",cmd)){
     reportCPUStats();
   }
-  if (strInStr("SYS",cmd)){
+  else if (strInStr("SYS",cmd)){
     reportSystemStats();
   }
-  if (strInStr("THREAD",cmd)){
+  else if (strInStr("THREAD",cmd)){
     reportThreadStats();
   }
 
-  if (strInStr("CHARGING",cmd)){
+  else if (strInStr("CHARGING",cmd)){
     theTerm.printf("charging cmd\n");
     MA.charging();
   }
-  if (strInStr("STANDBY",cmd)){
+  else if (strInStr("STANDBY",cmd)){
     theTerm.printf("standby cmd\n");
     MA.standby();
   }
-  if (strInStr("LOADED",cmd)){
+  else if (strInStr("LOADED",cmd)){
     theTerm.printf("loaded cmd\n");
     MA.loaded();
   }
-  if (strInStr("DISCHARGE",cmd)){
+  else if (strInStr("DISCHARGE",cmd)){
     theTerm.printf("discharge cmd\n");
     MA.discharge();
   }
-  if (strInStr("IDLE",cmd)){
+  else if (strInStr("IDLE",cmd)){
     theTerm.printf("idle cmd\n");
     MA.idle();
+  }
+}
+
+void parseStage(string inStr){
+  // theTerm.printDebug((char*)inStr.c_str());
+  regex IORre("STAGE ([0-9]) (DELAY|WIDTH) ([0-9]{1,6})");
+  smatch match;
+  if(regex_search(inStr,match,IORre)){ // check syntax
+      // try {
+      // theTerm.printDebug("IO read syntax matched!\n");
+      int stageNum=stoi(match[1].str());
+      string prop = match[2].str();
+      int val=stoi(match[3].str());
+      printf("Setting stage %d %s to %d\n",stageNum,prop.c_str(),val);
+      if (prop == "DELAY"){
+        stage0.setDelay(val);
+      }
+      else{
+        stage0.setWidth(val);
+      }
+  }
+  else{
+    printf("Syntax error, check syntax or type: help\n");
   }
 }

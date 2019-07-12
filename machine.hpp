@@ -21,10 +21,10 @@
 // class Inarticulate{
 // public:
 //
-//     // static void bprintf(const char * inStr){
+//     // static void printf(const char * inStr){
 //     //     buffer+=inStr;
 //     // }
-//     static void bprintf(const char *format, ...){
+//     static void printf(const char *format, ...){
 //         va_list args;
 //         va_start(args, format);
 //         char buff[100];
@@ -81,8 +81,8 @@ class State : public Inarticulate{
 class IDLE: public State
 {
     public:
-        IDLE(){bprintf( "   IDLE-ctor\n");};
-        ~IDLE(){bprintf( "   IDLE-dtor\n");};
+        IDLE(){printf( "   IDLE-ctor\n");};
+        ~IDLE(){printf( "   IDLE-dtor\n");};
         void charging(Machine *m);
         string report();
         string name="idle";
@@ -90,8 +90,8 @@ class IDLE: public State
 class CHARGING: public State
 {
     public:
-        CHARGING(){bprintf( "   CHARGING-ctor\n");};
-        ~CHARGING(){bprintf( "   CHARGING-dtor\n");};
+        CHARGING(){printf( "   CHARGING-ctor\n");};
+        ~CHARGING(){printf( "   CHARGING-dtor\n");};
         void standby(Machine *m);
         string report();
         string name="charging";
@@ -99,8 +99,8 @@ class CHARGING: public State
 class STANDBY: public State
 {
     public:
-        STANDBY(){bprintf( "   STANDBY-ctor\n");};
-        ~STANDBY(){bprintf( "   STANDBY-dtor\n");};
+        STANDBY(){printf( "   STANDBY-ctor\n");};
+        ~STANDBY(){printf( "   STANDBY-dtor\n");};
         void loaded(Machine *m);
         string report();
         string name="standby";
@@ -108,8 +108,8 @@ class STANDBY: public State
 class LOADED: public State
 {
     public:
-        LOADED(){bprintf( "   LOADED-ctor\n");
-        };~LOADED(){bprintf( "   LOADED-dtor\n");};
+        LOADED(){printf( "   LOADED-ctor\n");
+        };~LOADED(){printf( "   LOADED-dtor\n");};
         void discharge(Machine *m);
         string report();
         string name="loaded";
@@ -118,8 +118,8 @@ class LOADED: public State
 class DISCHARGE: public State
 {
 public:
-    DISCHARGE(){bprintf( "   DISCHARGE-ctor\n");};
-    ~DISCHARGE(){bprintf( "   DISCHARGE-dtor\n");};
+    DISCHARGE(){printf( "   DISCHARGE-ctor\n");};
+    ~DISCHARGE(){printf( "   DISCHARGE-dtor\n");};
     void idle(Machine *m);
     string report();
     string name="discharge";

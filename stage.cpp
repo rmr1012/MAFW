@@ -45,12 +45,16 @@ void Stage::driveHigh(){
 void Stage::driveLow(){
   triggerO->write(0);
 }
+void Stage::printStats(){
+  // printf("Stage\tDelay\tWidth\tArm\tState\tV\tI\n");
+  printf("%d \t%d \t%d \t %d \t %d \t%.2f \t%.2f\t%.2f\n",id,triggerDelay,pulseWidth,armed,state,getVoltage(),getCurrent(),meter->getVelocity());
+}
 void Stage::discharge(){
   if(armed){
     theTerm->printf("in discharge\n");
     theTerm->printf("elapsed: %i  us\n",meter->cp2d-meter->cp2u);
-    outPosEdge.attach_us(callback(this,&Stage::driveHigh),100);
-    outNegEdge.attach_us(callback(this,&Stage::driveLow), 600);
+    outPosEdge.attach_us(callback(this,&Stage::driveHigh),triggerDelay);
+    outNegEdge.attach_us(callback(this,&Stage::driveLow), triggerDelay+pulseWidth);
   }
 }
 void Stage::triggerISR(){

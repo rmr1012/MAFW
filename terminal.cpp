@@ -230,7 +230,7 @@ void serialTerminal::serialIRQHandler(){
 
         }
         if(theChar=='\n' | theChar=='\r'){
-          if(serialBuffer.size()>1){
+          // if(serialBuffer.size()>1){
             commandBuffer=toUpper(serialBuffer);
             commandReady=true;
             // commandCallback();
@@ -240,12 +240,12 @@ void serialTerminal::serialIRQHandler(){
             cursor=0;
             upkeys=0;
             queue.call(this,&serialTerminal::commandWorker);
-          }
-          else{
-            this->printf("\nterm$ ");
-            serialBuffer="";
-            cursor=0;
-          }
+          // }
+          // else{
+          //   this->printf("\nterm$ ");
+          //   serialBuffer="";
+          //   cursor=0;
+          // }
         }
 
     }
