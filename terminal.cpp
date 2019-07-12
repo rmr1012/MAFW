@@ -1,18 +1,8 @@
 #include "terminal.hpp"
 #include <string>
 #include "mbed.h"
-//Serial* serialTerminal::debug; // tx, rx
-//Serial* serialTerminal::term;
-// bool serialTerminal::commandReady;
-// bool serialTerminal::ctrlc=false;
-// string serialTerminal::serialBuffer;
-// string serialTerminal::commandBuffer;
-// recallBuffer* serialTerminal::myBuffer;// recall last 10 commands
-// serialTerminal* serialTerminal::this=nullptr;
-// RawSerial* serialTerminal::debug = new RawSerial(PB_6,PB_7,115200);
 
-// Callback<void()> serialTerminal::commandCallback;
-//void serialTerminal::serialIRQHandler();
+
 string banner=
 "\nhello!!!"
 "\nhello!!!"
@@ -45,6 +35,7 @@ char arrowSeq2=0x5b;
 void serialTerminal::printStr(string& inStr){
   this->printf(inStr.c_str());
 }
+#ifdef TERMDEBUG
 void serialTerminal::printDebug(string inStr){
   debug->printf("[DEBUG] ");
   debug->printf((char*)inStr.c_str());
@@ -53,6 +44,7 @@ void serialTerminal::printDebug(const char* inStr){
   debug->printf("[DEBUG] ");
   debug->printf(inStr);
 }
+#endif
 // void serialTerminal::attach(Callback<void()> inFunc){
 //   commandCallback=inFunc;
 // }
@@ -94,17 +86,16 @@ serialTerminal::serialTerminal(PinName tx,PinName rx,int inbaud):RawSerial(tx,rx
 
   // commandThread = new Thread(callback(this,&serialTerminal::commandWorker));
   commandThread = new Thread(callback(&queue, &EventQueue::dispatch_forever));
-  // RawSerial* debug = new RawSerial(PB_6,PB_7,115200);
 
   this->printf("\e[4;h");
-  // debug=this;
 }
 void serialTerminal::attachParser(Callback<void(string)> inFunc){
   commandFunc=inFunc;
 }
 void serialTerminal::commandWorker(){
-
+#ifdef TERMDEBUG
     this->printDebug("working...\n");
+#endif
     string copyBuffer=commandBuffer;
     commandReady=false;
     commandBuffer="";
@@ -112,9 +103,11 @@ void serialTerminal::commandWorker(){
     commandFunc(copyBuffer);
     this->printf("term$ ");
 }
+#ifdef TERMDEBUG
 void serialTerminal::setDebug(RawSerial* inSerial){
   debug=inSerial;
 }
+#endif
 
 void serialTerminal::serialIRQHandler(){
 
@@ -124,7 +117,9 @@ void serialTerminal::serialIRQHandler(){
     static uint8_t upkeys;
     while(this->readable()){
         char theChar=(char) this->getc();
+        #ifdef TERMDEBUG
         debug->printf("%02X\n", theChar);
+        #endif
 
         if(theChar=='\b'&& serialBuffer.size()>0 && cursor>0) //BACKSPACE
         {
@@ -153,14 +148,16 @@ void serialTerminal::serialIRQHandler(){
         else if(theChar==arrowSeq2&&arrowWatcher5B){ // ESC got pressed previously
           arrowWatcher5B=false;
           arrowWatcher=true;
-          printDebug("seq2\n");
+          // printDebug("seq2\n");
         }
         else if((theChar==LEFTKEY||theChar==RIGHTKEY||theChar==UPKEY||theChar==DOWNKEY)&&arrowWatcher){
-          printDebug("seq3\n");
+          // printDebug("seq3\n");
           arrowWatcher=false;
 
           if(theChar==LEFTKEY){
+            #ifdef TERMDEBUG
             printDebug("left key detected\n");
+            #endif
             if(cursor>0){
               cursor--;
 
@@ -173,10 +170,14 @@ void serialTerminal::serialIRQHandler(){
 
               this->printf("\e[1;C");
             }
+            #ifdef TERMDEBUG
             printDebug("right key detected\n");
+            #endif
           }
           else if(theChar==UPKEY){
+            #ifdef TERMDEBUG
             printDebug("up key detected\n");
+            #endif
 
             this->printf("\e[1;M\r"); // clear current row
 
@@ -191,7 +192,9 @@ void serialTerminal::serialIRQHandler(){
             cursor=serialBuffer.length();
           }
           else if(theChar==DOWNKEY){
+            #ifdef TERMDEBUG
             printDebug("down key detected\n");
+            #endif
             if(upkeys>=0){
 
 
@@ -218,11 +221,12 @@ void serialTerminal::serialIRQHandler(){
           serialBuffer.insert(cursor,1,theChar); // append latest char to string
 
           cursor++;
-
+          #ifdef TERMDEBUG
           debug->printf("len: %u\n",serialBuffer.length());
           debug->printf("buff: ");
           printDebug(serialBuffer);
           debug->printf("\n");
+          #endif
 
         }
         if(theChar=='\n' | theChar=='\r'){

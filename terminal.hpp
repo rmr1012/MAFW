@@ -29,7 +29,7 @@ public:
   serialTerminal* theTerm;
   bool commandReady;
 
-  void setDebug(RawSerial *);
+
   Thread* commandThread;
   void commandWorker();
 
@@ -41,10 +41,14 @@ public:
   string serialBuffer;
   string commandBuffer;
   recallBuffer* myBuffer;// recall last 10 commands
+
+  void printStr(string&);
+  #ifdef TERMDEBUG
+  void setDebug(RawSerial *);
   RawSerial* debug;
   void printDebug(string);
   void printDebug(const char*);
-  void printStr(string&);
+  #endif
 };
 
 

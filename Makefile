@@ -12,14 +12,7 @@ all: dev deploy
 
 dev:
 	@echo "making for dev"
-	$(PYTHONPATH) $(MBEDCLI) $(MBEDARGS) --target NUCLEO_F303ZE --profile develop.json
-	mkdir -p $(DISTPATH)
-	mkdir -p $(DISTPATH)/DEV/
-	cp $(BUILDPATH)/NUCLEO_F303ZE/GCC_ARM-DEVELOP/MAFW.bin $(DISTPATH)/DEV/
-	cp $(BUILDPATH)/NUCLEO_F303ZE/GCC_ARM-DEVELOP/MAFW.elf $(DISTPATH)/DEV/
-df:
-	@echo "making for dev"
-	$(PYTHONPATH) $(MBEDCLI) $(MBEDARGS) --target K66F --profile profile.json
+	$(PYTHONPATH) $(MBEDCLI) $(MBEDARGS) --target NUCLEO_F303ZE --profile dev.json
 	mkdir -p $(DISTPATH)
 	mkdir -p $(DISTPATH)/DEV/
 	cp $(BUILDPATH)/NUCLEO_F303ZE/GCC_ARM-DEV/MAFW.bin $(DISTPATH)/DEV/
