@@ -1,11 +1,11 @@
 #include "stage.hpp"
 
 
-Stage::Stage(serialTerminal* theTerm, int in_id, Meter* pre_meter, float in_delay, PinName voltage, PinName current,PinName out_trigger, PinName in_trigger):theTerm(theTerm){
+Stage::Stage(serialTerminal* theTerm, int in_id, Meter* pre_meter, PinName voltage, PinName current,PinName out_trigger, PinName in_trigger):theTerm(theTerm){
   // theTerm=inTerm;
   id=in_id;
   state=0;// default state to idle
-  delay=in_delay;
+
   meter=pre_meter;
 
   voltageADC = new AnalogIn(voltage);

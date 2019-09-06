@@ -19,9 +19,9 @@ float Meter::getVelocity(){
   return cp2d-cp2u;// deug return just 2ud width
   // return 1/(((cp1d-cp1u)+(cp1d-cp1u))/2);
 }
-void Meter::assignTrigger(Callback<void()> func){
-  triggerFunc=func;
-}
+// void Meter::assignTrigger(Callback<void()> func){
+//   triggerFunc=func;
+// }
 void Meter::cp1uISR(){
   cp1u=timer.read_us();
   theTerm->printf("cp1uISR\n");
@@ -29,14 +29,15 @@ void Meter::cp1uISR(){
 void Meter::cp1dISR(){
   cp1d=timer.read_us();
   theTerm->printf("cp1dISR\n");
+  // triggerFunc();
 }
-void Meter::cp2uISR(){
-  cp2u=timer.read_us();
-  theTerm->printf("cp2uISR\n");
-
-}
-void Meter::cp2dISR(){
-  cp2d=timer.read_us();
-  theTerm->printf("cp2dISR\n");
-  triggerFunc();
-}
+// void Meter::cp2uISR(){
+//   cp2u=timer.read_us();
+//   theTerm->printf("cp2uISR\n");
+//
+// }
+// void Meter::cp2dISR(){
+//   cp2d=timer.read_us();
+//   theTerm->printf("cp2dISR\n");
+//
+// }

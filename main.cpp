@@ -10,7 +10,7 @@
 DigitalOut led1(LED1);
 DigitalOut led3(LED3);
 
-DigitalOut pulseO(PC_8);
+DigitalOut pulseO(PC_9);
 Timeout TOOneshot;
 void pulseLow(){
   pulseO.write(0);
@@ -21,9 +21,7 @@ void pulseLow(){
 
 // EventQueue *queue = mbed_event_queue();
 serialTerminal theTerm(USBTX,USBRX,115200);// tx, rx
-#ifdef TERMDEBUG
-RawSerial debugPort(PB_6,PB_7,115200);
-#endif
+
 Timer t;
 Ticker articulator;
 
@@ -37,54 +35,32 @@ void parseOneshot(string inStr);
 void pollADC();
 Machine MA;
 Meter meter0(&theTerm,0, PC_14, PC_13);
-Stage stage0(&theTerm,0 , &meter0, 0.1 , PA_0 , PA_1 , PC_10 );
+// Stage stage0(&theTerm,0 , &meter0, 0.1 , PA_0 , PA_1 , PC_10 );
+Stage stage0(&theTerm,0 , &meter0,  A0 , A1 , PC_8 );
 
-#ifdef SYSSTATE
-SystemReport sys_state( 2000 /* Loop delay time in ms */);
-#endif
-
-void articulate();
-
-void flip(){
-  led3=!led3;
-}
 
 
 int main()
 {
-    pulseO.write(1);
     initStats();
-    #ifdef TERMDEBUG
-    theTerm.setDebug(&debugPort);
-    #endif
-    t.start();
-    int count=0;
 
 
     stage0.armStage();
 
-    theTerm.printf("hello world\n");
+    printf("hello world\n");
     wait(.05);
-    #ifdef TERMDEBUG
-    theTerm.printDebug("Hello debug");
-    #endif
-    theTerm.printf("hello world2\n");
     theTerm.attachParser(parseCommand);
-    // articulator.attach(articulate,0.1);
-    statsTicker.attach(updateCPUStats,0.5);
-    // queue->dispatch_forever();
 
-    pulseO.write(0);
 
+    led3=0;
+    led1=1;
+    printf("ready to work\nterm$ ");
     while (true) { // polling loop yoooo
         wait(.2); // static delay
         led1=!led1; // life LED
+        led3=!led3; // life LED
 
     }
-}
-void articulate(){
-  flip();
-  theTerm.printf(Inarticulate::getBuffer().c_str());
 }
 
 void parseCommand(string cmd){
@@ -103,7 +79,7 @@ void parseCommand(string cmd){
     parseOneshot(cmd);
   }
   else if (strInStr("STATE",cmd)){
-    theTerm.printf(MA.report().c_str());
+    printf(MA.report().c_str());
   }
 
   else if (strInStr("CPU",cmd)){
@@ -117,23 +93,23 @@ void parseCommand(string cmd){
   }
 
   else if (strInStr("CHARGING",cmd)){
-    theTerm.printf("charging cmd\n");
+    printf("charging cmd\n");
     MA.charging();
   }
   else if (strInStr("STANDBY",cmd)){
-    theTerm.printf("standby cmd\n");
+    printf("standby cmd\n");
     MA.standby();
   }
   else if (strInStr("LOADED",cmd)){
-    theTerm.printf("loaded cmd\n");
+    printf("loaded cmd\n");
     MA.loaded();
   }
   else if (strInStr("DISCHARGE",cmd)){
-    theTerm.printf("discharge cmd\n");
+    printf("discharge cmd\n");
     MA.discharge();
   }
   else if (strInStr("IDLE",cmd)){
-    theTerm.printf("idle cmd\n");
+    printf("idle cmd\n");
     MA.idle();
   }
   else{
