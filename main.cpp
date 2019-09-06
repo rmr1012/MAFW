@@ -19,7 +19,7 @@ void pulseLow(){
 // InterruptIn armSwitch(PB_10);
 // InterruptIn loadMeter(PC_15);
 
-EventQueue *queue = mbed_event_queue();
+// EventQueue *queue = mbed_event_queue();
 serialTerminal theTerm(USBTX,USBRX,115200);// tx, rx
 #ifdef TERMDEBUG
 RawSerial debugPort(PB_6,PB_7,115200);
@@ -70,9 +70,9 @@ int main()
     #endif
     theTerm.printf("hello world2\n");
     theTerm.attachParser(parseCommand);
-    articulator.attach(articulate,0.1);
+    // articulator.attach(articulate,0.1);
     statsTicker.attach(updateCPUStats,0.5);
-    queue->dispatch_forever();
+    // queue->dispatch_forever();
 
     pulseO.write(0);
 
