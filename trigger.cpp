@@ -7,11 +7,11 @@ Trigger::Trigger(PinName triggerPin,bool first){
 }
 
 void Trigger::posEdgeISR(){
-  printf("%i",mode);
-  if (posDelay){
-    outPosEdgeTO.attach_us(callback(this,&Trigger::posEdgeSignalWrap),posDelay);
+  if (posDelay>80){
+    outPosEdgeTO.attach_us(callback(this,&Trigger::posEdgeSignalWrap),posDelay-80);
   }
   else{
+    wait_us(posDelay);// janky fix for timing inperfections
     posEdgeSignal();
   }
 
@@ -22,7 +22,12 @@ void Trigger::posEdgeISR(){
 }
 void Trigger::negEdgeISR(){
   if(!mode){// if trigger + delay neg edge mode
-    outNegEdgeTO.attach_us(callback(this,&Trigger::negEdgeSignalWrap), negDelay);
+    if(negDelay){
+      outNegEdgeTO.attach_us(callback(this,&Trigger::negEdgeSignalWrap), negDelay);
+    }
+    else{
+      negEdgeSignal();
+    }
   }
 }
 

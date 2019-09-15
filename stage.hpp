@@ -8,6 +8,9 @@
 #ifndef STAGE_H
 #define STAGE_H
 
+#define ADC2AMP 66
+#define ADC2VOLT 22
+
 #include <string>
 #include "mbed.h"
 #include "meter.hpp"
@@ -39,12 +42,20 @@ class Stage{
     void donothing();
     void driveHigh();
     void driveLow();
+    void record();
 
-
+    float currentVals[100]={};
+    float voltageVals[100]={};
+    int recordCounter=0;
+    Timeout recordTO;
+    Thread ADCThread;
+    osThreadId ADCThreadID;
     bool armed=false;
     bool widthMode=false;// default to trigger + delay mode
     bool posEdge=true;// by default, use positive edge to trigger unless other noted, this is for stage1 w/ force trigger
-
+    float jules=0;
+    float kinetic=0;
+    int recordInterval=100;
 
     DigitalOut*   FETgate;
 

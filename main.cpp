@@ -42,8 +42,8 @@ Machine MA;
 int main()
 {
     initStats();
-      //           trig    out  meter  V   I
-    MA.appendStage(PC_13, D15, PC_9, A0, A1);
+      //           trig   out meter  V   I
+    MA.appendStage(PC_13, D15, D0, A0, A1);
 
 
     MA.getTrigger(0)->setMode(1);
@@ -69,8 +69,7 @@ void parseCommand(string cmd){
   theTerm.printDebug(cmd);
   #endif
   if (strInStr("STAGES",cmd)){ // print all stages
-    printf("Stage\tDelay\tWidth\tArm\tState\tV\tI\tSpeed\n");
-    // stage0.printStats();
+    MA.reportStages();
   }
   else if(strInStr("STAGE ",cmd)){ // print all stages
     parseStage(cmd);
@@ -120,7 +119,7 @@ void parseCommand(string cmd){
 
 void parseStage(string inStr){
   // theTerm.printDebug((char*)inStr.c_str());
-  regex IORre("STAGE ([0-9]) (DELAY|WIDTH) ([0-9]{1,6})");
+  regex IORre("STAGE ([0-9]) (PDELAY|NDELAY|WIDTH) ([0-9]{1,6})");
   smatch match;
   if(regex_search(inStr,match,IORre)){ // check syntax
       // try {
@@ -129,11 +128,14 @@ void parseStage(string inStr){
       string prop = match[2].str();
       int val=stoi(match[3].str());
       printf("Setting stage %d %s to %d\n",stageNum,prop.c_str(),val);
-      if (prop == "DELAY"){
-        // stage0.setDelay(val);
+      if (prop == "PDELAY"){
+        MA.getStage(stageNum)->trigger->setPosDelay(val);
       }
-      else{
-        // stage0.setWidth(val);
+      else if (prop == "NDELAY"){
+        MA.getStage(stageNum)->trigger->setNegDelay(val);
+      }
+      else if (prop == "WIDTH"){
+        MA.getStage(stageNum)->trigger->setPulseWidth(val);
       }
   }
   else{

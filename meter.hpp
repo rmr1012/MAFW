@@ -33,9 +33,9 @@ class Meter : NonCopyable<Meter>{
 
     InterruptIn* cp;
     Timer timer;
-
-    int cpu; //check point 1 positive edge
-    int cpd; //check point 1 negative edge
+    bool resultReady=false;
+    int cpu=0; //check point 1 positive edge
+    int cpd=0; //check point 1 negative edge
 
 friend class Stage;
 };

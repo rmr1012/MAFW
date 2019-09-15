@@ -34,12 +34,20 @@ Meter* Machine::getMeter(int index){
 Trigger* Machine::getTrigger(int index){
   return triggers[index];
 }
+void Machine::reportStages(){
+  printf("   \tStage\tDelay\tWidth\tV\tI\tSpeed\n");
+  for(std::vector<int>::size_type i = 0; i != stages.size(); i++) {
+    printf("%i\t",i);
+    stages[i]->printStats();
+  }
+}
 
 string Machine::report(){
   string report="==== STATE MACHINE ====\n";
   report += current->report();
   return report;
 }
+
 
 
 void Machine::setCurrent(State *s){

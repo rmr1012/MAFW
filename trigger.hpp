@@ -33,7 +33,7 @@ class Trigger{
     PinName triggerPin;
 
     InterruptIn*  triggerI;
-    int posDelay=100;
+    int posDelay=1;
     int negDelay=0;
     int pulseWidth=500;
 

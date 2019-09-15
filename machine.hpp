@@ -36,6 +36,7 @@ class Machine{
         Stage* getStage(int);
         Meter* getMeter(int);
         Trigger* getTrigger(int);
+        void reportStages();
 
         string report();
       private:
