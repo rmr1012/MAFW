@@ -19,8 +19,7 @@
 
 class Meter : NonCopyable<Meter>{
   public:
-    Meter(serialTerminal* theTerm ,int ,PinName );
-    int getID();
+    Meter(PinName);
     float getVelocity();
     void resetMeter();
 
@@ -32,13 +31,11 @@ class Meter : NonCopyable<Meter>{
     // void assignTrigger(Callback<void()>);
     // Callback<void()> triggerFunc;
 
-    int id;
-    InterruptIn* cp1;
+    InterruptIn* cp;
     Timer timer;
-    serialTerminal* theTerm;
 
-    int cp1u; //check point 1 positive edge
-    int cp1d; //check point 1 negative edge
+    int cpu; //check point 1 positive edge
+    int cpd; //check point 1 negative edge
 
 friend class Stage;
 };

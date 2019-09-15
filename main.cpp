@@ -10,7 +10,7 @@
 DigitalOut led1(LED1);
 DigitalOut led3(LED3);
 
-DigitalOut pulseO(PC_9);
+DigitalOut pulseO(D15);
 Timeout TOOneshot;
 void pulseLow(){
   pulseO.write(0);
@@ -23,29 +23,30 @@ void pulseLow(){
 serialTerminal theTerm(USBTX,USBRX,115200);// tx, rx
 
 Timer t;
-Ticker articulator;
+// Ticker articulator;
 
-std::string Inarticulate::buffer; // initialize buffer for all inarticulate classes
+// std::string Inarticulate::buffer; // initialize buffer for all inarticulate classes
 
 int tik,tok;
 void parseCommand(string);
 void parseStage(string inStr);
 void parseOneshot(string inStr);
 
-void pollADC();
 Machine MA;
-Meter meter0(&theTerm,0, PC_14, PC_13);
+// Meter meter0(PC_13);
 // Stage stage0(&theTerm,0 , &meter0, 0.1 , PA_0 , PA_1 , PC_10 );
-Stage stage0(&theTerm,0 , &meter0,  A0 , A1 , PC_8 );
+// Stage stage0(&theTerm,0 , &meter0,  A0 , A1 , PC_8 );
 
 
 
 int main()
 {
     initStats();
+      //           trig    out  meter  V   I
+    MA.appendStage(PC_13, D15, PC_9, A0, A1);
 
 
-    stage0.armStage();
+    MA.getTrigger(0)->setMode(1);
 
     printf("hello world\n");
     wait(.05);
@@ -69,7 +70,7 @@ void parseCommand(string cmd){
   #endif
   if (strInStr("STAGES",cmd)){ // print all stages
     printf("Stage\tDelay\tWidth\tArm\tState\tV\tI\tSpeed\n");
-    stage0.printStats();
+    // stage0.printStats();
   }
   else if(strInStr("STAGE ",cmd)){ // print all stages
     parseStage(cmd);
@@ -129,10 +130,10 @@ void parseStage(string inStr){
       int val=stoi(match[3].str());
       printf("Setting stage %d %s to %d\n",stageNum,prop.c_str(),val);
       if (prop == "DELAY"){
-        stage0.setDelay(val);
+        // stage0.setDelay(val);
       }
       else{
-        stage0.setWidth(val);
+        // stage0.setWidth(val);
       }
   }
   else{

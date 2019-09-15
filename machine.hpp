@@ -18,36 +18,8 @@
 #include "utilities.hpp"
 
 
-// class Inarticulate{
-// public:
-//
-//     // static void printf(const char * inStr){
-//     //     buffer+=inStr;
-//     // }
-//     static void printf(const char *format, ...){
-//         va_list args;
-//         va_start(args, format);
-//         char buff[100];
-//         vsnprintf(buff, sizeof buff, format, args);
-//         // std::string buffAsStdStr = buff;
-//         va_end(args);
-//         buffer+=buff;
-//     }
-//
-//     static std::string getBuffer(){
-//         std::string outbuf=buffer;
-//         buffer="";
-//         return outbuf;
-//     }
-//     static bool isReady(){
-//         return buffer != "";
-//     }
-// private:
-//     static std::string buffer;
-// };
-
 class State;
-class Machine: public Inarticulate{
+class Machine{
     public:
         Machine();
         // InterruptIn* armSwitch;
@@ -59,15 +31,21 @@ class Machine: public Inarticulate{
         void standby();
         void loaded();
         void discharge();
-        void appendStage(Stage* );
-        void appendMeter(Meter* );
+
+        void appendStage(PinName triggerPin, PinName outputPin, PinName meterPin, PinName voltagePin, PinName currentPin);
+        Stage* getStage(int);
+        Meter* getMeter(int);
+        Trigger* getTrigger(int);
+
         string report();
       private:
         std::vector<Stage*> stages;
         std::vector<Meter*> meters;
+        std::vector<Trigger*> triggers;
+
 };
 
-class State : public Inarticulate{
+class State{
     public:
         virtual void idle(Machine *m);
         virtual void charging(Machine *m);

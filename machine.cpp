@@ -11,6 +11,37 @@
 Machine::Machine(){
     current = new IDLE(); // initial state
 };
+
+
+void Machine::appendStage(PinName triggerPin, PinName outputPin, PinName meterPin, PinName voltagePin, PinName currentPin){
+  Meter* meter=new Meter(meterPin);
+  Trigger* trigger = new Trigger(triggerPin);
+
+  Stage* stage=new Stage(outputPin, voltagePin, currentPin);
+  stage->assignTrigger(trigger);
+  stage->assignMeter(meter);
+
+  meters.push_back(meter);
+  triggers.push_back(trigger);
+  stages.push_back(stage);
+}
+Stage* Machine::getStage(int index){
+  return stages[index];
+}
+Meter* Machine::getMeter(int index){
+  return meters[index];
+}
+Trigger* Machine::getTrigger(int index){
+  return triggers[index];
+}
+
+string Machine::report(){
+  string report="==== STATE MACHINE ====\n";
+  report += current->report();
+  return report;
+}
+
+
 void Machine::setCurrent(State *s){
     current = s;
 }
@@ -20,17 +51,7 @@ void Machine::standby(){current->standby(this);}
 void Machine::loaded(){current->loaded(this);}
 void Machine::discharge(){current->discharge(this);}
 
-void Machine::appendMeter(Meter* newMeter){
-  meters.push_back(newMeter);
-}
-void Machine::appendStage(Stage* newStage){
-  stages.push_back(newStage);
-}
-string Machine::report(){
-  string report="==== STATE MACHINE ====\n";
-  report += current->report();
-  return report;
-}
+
 
 void State::idle(Machine *m){}
 void State::standby(Machine *m){}
