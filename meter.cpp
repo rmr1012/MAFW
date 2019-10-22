@@ -9,7 +9,7 @@ Meter::Meter(PinName in_cp1){
 }
 
 float Meter::getVelocity(){
-  return (float)19050.0/(cpu-cpd);// deug return just 2ud width 19050=.01905m*10^6(u)
+  return (float)19050.0/(cpd-cpu);// deug return just 2ud width 19050=.01905m*10^6(u)
   // return 1/(((cp1d-cp1u)+(cp1d-cp1u))/2);
 }
 
