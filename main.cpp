@@ -42,12 +42,16 @@ Machine MA;
 int main()
 {
     initStats();
-      //           trig   out meter  V   I
-    MA.appendStage(PC_13, D15, D0, A0, A1);
+      //           trig1 trig2, out outP meter meter2  V   I
+    MA.appendStage(PC_13, PC_13,  D15, A5,  D0,   D0  , A0, A1);
+    MA.getTrigger(0)->setPosDelayP(1000);
+    MA.getTrigger(0)->setMode(0); // 0 = LED triggered, 1 = pulse width control
+      //           trig1 trig2, out outP meter meter2  V   I
+    // MA.appendStage(D2,   D2,    A4, A0,  A3,   A3  , A0, A1);
 
+    // rougueMeter=Meter(D4,D4);
 
-    MA.getTrigger(0)->setMode(1);
-
+    MA.armMachine();
     printf("hello world\n");
     wait(.05);
     theTerm.attachParser(parseCommand);
@@ -119,7 +123,7 @@ void parseCommand(string cmd){
 
 void parseStage(string inStr){
   // theTerm.printDebug((char*)inStr.c_str());
-  regex IORre("STAGE ([0-9]) (PDELAY|NDELAY|WIDTH) ([0-9]{1,6})");
+  regex IORre("STAGE ([0-9]) (PDELAY|NDELAY|PDELAYP|WIDTH) ([0-9]{1,6})");
   smatch match;
   if(regex_search(inStr,match,IORre)){ // check syntax
       // try {
@@ -130,6 +134,9 @@ void parseStage(string inStr){
       printf("Setting stage %d %s to %d\n",stageNum,prop.c_str(),val);
       if (prop == "PDELAY"){
         MA.getStage(stageNum)->trigger->setPosDelay(val);
+      }
+      if (prop == "PDELAYP"){
+        MA.getStage(stageNum)->trigger->setPosDelayP(val);
       }
       else if (prop == "NDELAY"){
         MA.getStage(stageNum)->trigger->setNegDelay(val);

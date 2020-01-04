@@ -22,7 +22,7 @@
 
 class Stage{
   public:
-    Stage(PinName output,PinName voltage, PinName current);
+    Stage(PinName output,PinName outputP,PinName voltage, PinName current);
 
 
     // void armStage();arming is at machine level
@@ -42,6 +42,8 @@ class Stage{
     void donothing();
     void driveHigh();
     void driveLow();
+    void driveHighP();
+    void driveLowP();
     void record();
 
     float currentVals[100]={};
@@ -58,6 +60,7 @@ class Stage{
     int recordInterval=100;
 
     DigitalOut*   FETgate;
+    DigitalOut*   FETgateP;
 
     AnalogIn*     voltageADC;
     AnalogIn*     currentADC;

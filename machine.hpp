@@ -32,12 +32,13 @@ class Machine{
         void loaded();
         void discharge();
 
-        void appendStage(PinName triggerPin, PinName outputPin, PinName meterPin, PinName voltagePin, PinName currentPin);
+        void appendStage(PinName triggerPri,PinName triggerSec, PinName outputPin, PinName outputPinP,PinName meterPin,PinName meterPin2, PinName voltagePin, PinName currentPin);
         Stage* getStage(int);
         Meter* getMeter(int);
         Trigger* getTrigger(int);
         void reportStages();
-
+        void armMachine();
+        
         string report();
       private:
         std::vector<Stage*> stages;

@@ -13,11 +13,11 @@ Machine::Machine(){
 };
 
 
-void Machine::appendStage(PinName triggerPin, PinName outputPin, PinName meterPin, PinName voltagePin, PinName currentPin){
-  Meter* meter=new Meter(meterPin);
-  Trigger* trigger = new Trigger(triggerPin);
+void Machine::appendStage(PinName triggerPri,PinName triggerSec, PinName outputPin,PinName outputPinP, PinName meterPin, PinName meterPin2, PinName voltagePin, PinName currentPin){
+  Meter* meter = new Meter(meterPin,meterPin2);
+  Trigger* trigger = new Trigger(triggerPri,triggerSec);
 
-  Stage* stage=new Stage(outputPin, voltagePin, currentPin);
+  Stage* stage=new Stage(outputPin, outputPinP, voltagePin, currentPin);
   stage->assignTrigger(trigger);
   stage->assignMeter(meter);
 
@@ -25,6 +25,15 @@ void Machine::appendStage(PinName triggerPin, PinName outputPin, PinName meterPi
   triggers.push_back(trigger);
   stages.push_back(stage);
 }
+
+void Machine::armMachine(){
+  for(std::vector<int>::size_type i = 0; i != triggers.size()-1; i++) {
+    triggers[i]->assignSpent(callback(triggers[i+1],&Trigger::armTrigger));
+    printf("linking Trigger %i spent to %i armed\n",i,i+1);
+  }
+  triggers[0]->armTrigger();
+}
+
 Stage* Machine::getStage(int index){
   return stages[index];
 }
