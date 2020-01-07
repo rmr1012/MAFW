@@ -69,5 +69,8 @@ class Trigger{
     bool mode=0; //0 trigger+delay negedge, 1 delay only neg edge
 
     int state=TRIGGER_SPENT;
+
+    void setId(int i_id){id=i_id;}
+    int id;
 };
 #endif

@@ -35,7 +35,7 @@ void Trigger::posEdgeISR(){
       outNegEdgeTO.attach_us(callback(this,&Trigger::negEdgeSignalWrap), posDelay+pulseWidth);
     }
   }
-  printf("exiting posEdgeISR\n");
+  // printf("exiting posEdgeISR\n");
   // else don't time anything out, wait for neg edge
 }
 void Trigger::negEdgeISR(){
@@ -45,17 +45,19 @@ void Trigger::negEdgeISR(){
     }
     else{
       negEdgeSignal();
+      negEdgeSignalP();
       state=TRIGGER_SPENT;
       triggerSpentCallback();
     }
   }
-  printf("exiting negEdgeISR\n");
+  // printf("exiting negEdgeISR\n");
 }
 
 void Trigger::armTrigger(){
   state=TRIGGER_ARMED;
-  printf("trigger armed\n");
+  printf("trigger %i armed\n",id);
 }
+
 
 void Trigger::assignSpent(Callback<void()> func){
   triggerSpentCallback=func;

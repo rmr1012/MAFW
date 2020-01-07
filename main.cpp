@@ -43,13 +43,13 @@ int main()
 {
     initStats();
       //           trig1 trig2, out outP meter meter2  V   I
-    MA.appendStage(PC_13, PC_13,  D15, A5,  D0,   D0  , A0, A1);
-    MA.getTrigger(0)->setPosDelayP(1000);
+    MA.appendStage(PC_13, D1,  D15, A5,  D0,   D2  , A0, A1);
+    MA.getTrigger(0)->setPosDelayP(500);
     MA.getTrigger(0)->setMode(0); // 0 = LED triggered, 1 = pulse width control
       //           trig1 trig2, out outP meter meter2  V   I
-    // MA.appendStage(D2,   D2,    A4, A0,  A3,   A3  , A0, A1);
+    MA.appendStage(D2,   D2,    A1, A0,  A3,   A3  , A0, A2);
 
-    // rougueMeter=Meter(D4,D4);
+    // rougueMeter=Meter(D4,D4);l
 
     MA.armMachine();
     printf("hello world\n");

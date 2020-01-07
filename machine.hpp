@@ -17,7 +17,7 @@
 #include "stage.hpp"
 #include "utilities.hpp"
 
-
+void doNothing();
 class State;
 class Machine{
     public:
@@ -38,7 +38,7 @@ class Machine{
         Trigger* getTrigger(int);
         void reportStages();
         void armMachine();
-        
+
         string report();
       private:
         std::vector<Stage*> stages;

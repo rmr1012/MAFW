@@ -16,8 +16,12 @@ Machine::Machine(){
 void Machine::appendStage(PinName triggerPri,PinName triggerSec, PinName outputPin,PinName outputPinP, PinName meterPin, PinName meterPin2, PinName voltagePin, PinName currentPin){
   Meter* meter = new Meter(meterPin,meterPin2);
   Trigger* trigger = new Trigger(triggerPri,triggerSec);
-
   Stage* stage=new Stage(outputPin, outputPinP, voltagePin, currentPin);
+  wait(0.1);
+  int id=stages.size();
+  printf("====== Stage %i ======\n",id);
+  trigger->setId(id);
+
   stage->assignTrigger(trigger);
   stage->assignMeter(meter);
 
@@ -27,11 +31,21 @@ void Machine::appendStage(PinName triggerPri,PinName triggerSec, PinName outputP
 }
 
 void Machine::armMachine(){
-  for(std::vector<int>::size_type i = 0; i != triggers.size()-1; i++) {
-    triggers[i]->assignSpent(callback(triggers[i+1],&Trigger::armTrigger));
-    printf("linking Trigger %i spent to %i armed\n",i,i+1);
+  for(std::vector<int>::size_type i = 0; i < triggers.size(); i++) {
+    if(i<triggers.size()-1){
+      triggers[i]->assignSpent(callback(triggers[i+1],&Trigger::armTrigger));
+      printf("linking Trigger %i spent to %i armed\n",i,i+1);
+    }
+    else{
+      triggers[i]->assignSpent(callback(doNothing));
+      printf("linking Trigger %i spent to machine Idle\n",i);
+    }
   }
   triggers[0]->armTrigger();
+}
+
+void doNothing(){
+  return;
 }
 
 Stage* Machine::getStage(int index){
@@ -64,7 +78,7 @@ void Machine::setCurrent(State *s){
 }
 void Machine::idle(){current->idle(this);}
 void Machine::charging(){current->charging(this);}
-void Machine::standby(){current->standby(this);}
+void Machine::standby(){current->standby(this);}//standby means it's ready
 void Machine::loaded(){current->loaded(this);}
 void Machine::discharge(){current->discharge(this);}
 
