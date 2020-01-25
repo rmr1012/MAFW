@@ -12,14 +12,14 @@ all: dev deploy
 
 dev:
 	@echo "making for dev"
-	$(PYTHONPATH) $(MBEDCLI) $(MBEDARGS) --target NUCLEO_F429ZI --profile dev.json
+	$(PYTHONPATH) $(MBEDCLI) $(MBEDARGS) --target NUCLEO_L432KC --profile dev.json
 	mkdir -p $(DISTPATH)
 	mkdir -p $(DISTPATH)/DEV/
-	cp $(BUILDPATH)/NUCLEO_F429ZI/GCC_ARM-DEV/MAFW.bin $(DISTPATH)/DEV/
-	cp $(BUILDPATH)/NUCLEO_F429ZI/GCC_ARM-DEV/MAFW.elf $(DISTPATH)/DEV/
+	cp $(BUILDPATH)/NUCLEO_L432KC/GCC_ARM-DEV/MAFW_Sun.bin $(DISTPATH)/DEV/
+	cp $(BUILDPATH)/NUCLEO_L432KC/GCC_ARM-DEV/MAFW_Sun.elf $(DISTPATH)/DEV/
 
 deploy:
-	-cp $(DISTPATH)/DEV/MAFW.bin /Volumes/NODE_F429ZI
-	# cp $(DISTPATH)/DEV/MAFW.bin /Volumes/FRDM-K66FJ
+	-cp $(DISTPATH)/DEV/MAFW_Sun.bin /Volumes/NODE_L432KC
+	# cp $(DISTPATH)/DEV/MAFW_Sun.bin /Volumes/FRDM-K66FJ
 clean:
 	rm -rf $(BUILDPATH)

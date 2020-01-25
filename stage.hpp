@@ -13,8 +13,6 @@
 
 #include <string>
 #include "mbed.h"
-#include "meter.hpp"
-#include "trigger.hpp"
 #include <map>
 #include <regex>
 #include <vector>
@@ -22,7 +20,7 @@
 
 class Stage{
   public:
-    Stage(PinName output,PinName outputP,PinName voltage, PinName current);
+    Stage();
 
 
     // void armStage();arming is at machine level
@@ -31,43 +29,9 @@ class Stage{
     float getCurrent();
     void printStats();
     // commands
-    void assignTrigger(Trigger* in_trigger);
-    void assignMeter(Meter* in_meter);
+    int slaveID=0x00;
 
-    void forceTrigger();
-    Meter* meter;
-    Trigger* trigger;
-
-  private:
-    void donothing();
-    void driveHigh();
-    void driveLow();
-    void driveHighP();
-    void driveLowP();
-    void record();
-
-    float currentVals[100]={};
-    float voltageVals[100]={};
-    int recordCounter=0;
-    Timeout recordTO;
-    Thread ADCThread;
-    osThreadId ADCThreadID;
-    bool armed=false;
-    bool widthMode=false;// default to trigger + delay mode
-    bool posEdge=true;// by default, use positive edge to trigger unless other noted, this is for stage1 w/ force trigger
-    float jules=0;
-    float kinetic=0;
-    int recordInterval=100;
-
-    DigitalOut*   FETgate;
-    DigitalOut*   FETgateP;
-
-    AnalogIn*     voltageADC;
-    AnalogIn*     currentADC;
-
-
-    friend class Meter;
-    friend class Trigger;
+    RawSerial * sharedUART;
 };
 
 #endif

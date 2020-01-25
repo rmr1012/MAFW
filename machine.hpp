@@ -17,92 +17,40 @@
 #include "stage.hpp"
 #include "utilities.hpp"
 
-void doNothing();
-class State;
+enum STATES{
+   ENUMURATION,
+   ENUMURATION_PENDING,
+   STANDBY,
+   LOADED,
+   DISCHARGE
+};
 class Machine{
     public:
-        Machine();
+        Machine(PinName,PinName,PinName,PinName);
         // InterruptIn* armSwitch;
         // InterruptIn* loadMeter;
-        State *current;
-        void setCurrent(State *s);
         void idle();
-        void charging();
-        void standby();
+        void standby();//aka armed
         void loaded();
         void discharge();
 
-        void appendStage(PinName triggerPri,PinName triggerSec, PinName outputPin, PinName outputPinP,PinName meterPin,PinName meterPin2, PinName voltagePin, PinName currentPin);
-        Stage* getStage(int);
-        Meter* getMeter(int);
-        Trigger* getTrigger(int);
         void reportStages();
         void armMachine();
-
+        void startEnumeration();
+        void enumerateStages();
+        void RxIRQ();
         string report();
-      private:
+      // private:
         std::vector<Stage*> stages;
-        std::vector<Meter*> meters;
-        std::vector<Trigger*> triggers;
 
-};
-
-class State{
-    public:
-        virtual void idle(Machine *m);
-        virtual void charging(Machine *m);
-        virtual void standby(Machine *m);
-        virtual void loaded(Machine *m);
-        virtual void discharge(Machine *m);
-        string name;
-        virtual string report();
+        RawSerial *MasterUART;
+        DigitalOut *O1;
+        DigitalOut *O2;
+        Thread maTh;
+        EventQueue *maQueue;
+        enum STATES _STATE=STANDBY;
+        vector<char> rxBuf;
 };
 
-class IDLE: public State
-{
-    public:
-        IDLE(){printf( "   IDLE-ctor\n");};
-        ~IDLE(){printf( "   IDLE-dtor\n");};
-        void charging(Machine *m);
-        string report();
-        string name="idle";
-};
-class CHARGING: public State
-{
-    public:
-        CHARGING(){printf( "   CHARGING-ctor\n");};
-        ~CHARGING(){printf( "   CHARGING-dtor\n");};
-        void standby(Machine *m);
-        string report();
-        string name="charging";
-};
-class STANDBY: public State
-{
-    public:
-        STANDBY(){printf( "   STANDBY-ctor\n");};
-        ~STANDBY(){printf( "   STANDBY-dtor\n");};
-        void loaded(Machine *m);
-        string report();
-        string name="standby";
-};
-class LOADED: public State
-{
-    public:
-        LOADED(){printf( "   LOADED-ctor\n");
-        };~LOADED(){printf( "   LOADED-dtor\n");};
-        void discharge(Machine *m);
-        string report();
-        string name="loaded";
-};
-
-class DISCHARGE: public State
-{
-public:
-    DISCHARGE(){printf( "   DISCHARGE-ctor\n");};
-    ~DISCHARGE(){printf( "   DISCHARGE-dtor\n");};
-    void idle(Machine *m);
-    string report();
-    string name="discharge";
-};
 
 #endif /* machine_hpp */

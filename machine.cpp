@@ -8,146 +8,96 @@
 #include <stdio.h>
 #include "machine.hpp"
 // string Inarticulate::buffer;
-Machine::Machine(){
-    current = new IDLE(); // initial state
+Machine::Machine(PinName MTX,PinName MRX,PinName pO1,PinName pO2){
+  MasterUART = new RawSerial(MTX,MRX,500000);
+  MasterUART->attach(callback(this,&Machine::RxIRQ));
+  O1= new DigitalOut(pO1);
+  O2= new DigitalOut(pO2);
+
+  maQueue= new EventQueue(32 * EVENTS_EVENT_SIZE);
+  maTh.start(callback(maQueue, &EventQueue::dispatch_forever));
+  MasterUART->putc(0x55);
 };
 
-
-void Machine::appendStage(PinName triggerPri,PinName triggerSec, PinName outputPin,PinName outputPinP, PinName meterPin, PinName meterPin2, PinName voltagePin, PinName currentPin){
-  Meter* meter = new Meter(meterPin,meterPin2);
-  Trigger* trigger = new Trigger(triggerPri,triggerSec);
-  Stage* stage=new Stage(outputPin, outputPinP, voltagePin, currentPin);
-  wait(0.1);
-  int id=stages.size();
-  printf("====== Stage %i ======\n",id);
-  trigger->setId(id);
-
-  stage->assignTrigger(trigger);
-  stage->assignMeter(meter);
-
-  meters.push_back(meter);
-  triggers.push_back(trigger);
-  stages.push_back(stage);
-}
-
 void Machine::armMachine(){
-  for(std::vector<int>::size_type i = 0; i < triggers.size(); i++) {
-    if(i<triggers.size()-1){
-      triggers[i]->assignSpent(callback(triggers[i+1],&Trigger::armTrigger));
-      printf("linking Trigger %i spent to %i armed\n",i,i+1);
+
+}
+void Machine::startEnumeration(){
+  maQueue->call(callback(this,&Machine::enumerateStages));
+}
+void Machine::enumerateStages(){
+  printf("Starting enumeration\n");
+  _STATE=ENUMURATION;
+  O1->write(1); // signal first slave to wake
+
+  O2->write(1);
+  ThisThread::flags_wait_any_for(1, 1);
+  O2->write(0);
+  if(_STATE!=ENUMURATION_PENDING){
+    printf("Waiting for slave response timed out\n");
+    O1->write(0);
+    return;//abaort
+  }
+  char asnSlaveID=stages.size()+0xb0+1;
+  MasterUART->putc(0x60);
+  MasterUART->putc(asnSlaveID);
+  MasterUART->putc((char)asnSlaveID+0x60);
+  ThisThread::flags_wait_any_for(1, 1);
+  if(!_STATE==ENUMURATION){
+    printf("Waiting for slave response timed out 2\n");
+    O1->write(0);
+    return;//abaort
+  }
+  printf("Stage assigned ID 0x%X\n",asnSlaveID);
+  O1->write(0);
+
+
+  printf("Enum complete\n");
+
+}
+
+void Machine::RxIRQ(){
+
+  while(MasterUART->readable()){
+    char theChar=(char) MasterUART->getc();
+    printf("%X\n",theChar);
+    // rxBuf.push_back(theChar);
+    if (_STATE==ENUMURATION){
+      if(theChar==0x59){
+          maTh.flags_set(1);
+        _STATE=ENUMURATION_PENDING;
+      }
+      else{
+        printf("Got unexpected response during enum %X\n",theChar);
+        _STATE=STANDBY;
+      }
     }
-    else{
-      triggers[i]->assignSpent(callback(doNothing));
-      printf("linking Trigger %i spent to machine Idle\n",i);
+    else if (_STATE==ENUMURATION_PENDING){
+      if(theChar==0x61){
+         maTh.flags_set(1);
+        _STATE=ENUMURATION;
+      }
+      else{
+        printf("Got unexpected response during enum %X\n",theChar);
+        _STATE=STANDBY;
+      }
     }
   }
-  triggers[0]->armTrigger();
+}
+void clearBuff(){
+
 }
 
-void doNothing(){
-  return;
-}
-
-Stage* Machine::getStage(int index){
-  return stages[index];
-}
-Meter* Machine::getMeter(int index){
-  return meters[index];
-}
-Trigger* Machine::getTrigger(int index){
-  return triggers[index];
-}
-void Machine::reportStages(){
-  printf("   \tStage\tDelay\tWidth\tV\tI\tSpeed\n");
-  for(std::vector<int>::size_type i = 0; i != stages.size(); i++) {
-    printf("%i\t",i);
-    stages[i]->printStats();
-  }
-}
-
-string Machine::report(){
-  string report="==== STATE MACHINE ====\n";
-  report += current->report();
-  return report;
-}
-
-
-
-void Machine::setCurrent(State *s){
-    current = s;
-}
-void Machine::idle(){current->idle(this);}
-void Machine::charging(){current->charging(this);}
-void Machine::standby(){current->standby(this);}//standby means it's ready
-void Machine::loaded(){current->loaded(this);}
-void Machine::discharge(){current->discharge(this);}
-
-
-
-void State::idle(Machine *m){}
-void State::standby(Machine *m){}
-void State::loaded(Machine *m){}
-void State::discharge(Machine *m){}
-void State::charging(Machine *m){}
-string State::report(){return "nothing to report\n";}
-
-void IDLE::charging(Machine *m){
-    printf("   going from IDLE to CHARGING\n");
-    m->setCurrent(new CHARGING());
-    delete this;
-}
-string IDLE::report(){
-  string report= "Current State: ";
-  report += name;
-  report += "\n";
-
-  return report;
-}
-void CHARGING::standby(Machine *m){
-    printf("   going from CHARGING to STANDBY\n");
-    m->setCurrent(new STANDBY());
-    delete this;
-}
-string CHARGING::report(){
-  string report= "Current State: ";
-  report += name;
-  report += "\n";
-
-  return report;
-}
-void STANDBY::loaded(Machine *m){
-    printf("   going from STANDBY to LOADED\n");
-    m->setCurrent(new LOADED());
-    delete this;
-}
-string STANDBY::report(){
-  string report= "Current State: ";
-  report += name;
-  report += "\n";
-
-  return report;
-}
-void LOADED::discharge(Machine *m){
-    printf("   going from LOADED to DISCHARGE\n");
-    m->setCurrent(new DISCHARGE());
-    delete this;
-}
-string LOADED::report(){
-  string report= "Current State: ";
-  report += name;
-  report += "\n";
-
-  return report;
-}
-void DISCHARGE::idle(Machine *m){
-    printf("   going from DISCHARGE to IDLE\n");
-    m->setCurrent(new IDLE());
-    delete this;
-}
-string DISCHARGE::report(){
-  string report= "Current State: ";
-  report += name;
-  report += "\n";
-
-  return report;
-}
+// void Machine::reportStages(){
+//   printf("   \tStage\tDelay\tWidth\tV\tI\tSpeed\n");
+//   for(std::vector<int>::size_type i = 0; i != stages.size(); i++) {
+//     printf("%i\t",i);
+//     stages[i]->printStats();
+//   }
+// }
+//
+// string Machine::report(){
+//   string report="==== STATE MACHINE ====\n";
+//   report += current->report();
+//   return report;
+// }
