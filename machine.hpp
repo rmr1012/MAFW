@@ -17,9 +17,11 @@
 #include "stage.hpp"
 #include "utilities.hpp"
 
+
 enum STATES{
    ENUMURATION,
    ENUMURATION_PENDING,
+   ENUMURATION_STANDBY,
    STANDBY,
    LOADED,
    DISCHARGE
@@ -34,11 +36,13 @@ class Machine{
         void loaded();
         void discharge();
 
+        void txByte(char);
         void reportStages();
         void armMachine();
         void startEnumeration();
         void enumerateStages();
         void RxIRQ();
+        void resetStages();
         string report();
       // private:
         std::vector<Stage*> stages;
