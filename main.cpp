@@ -1,5 +1,4 @@
 #include "MAFW.h"
-
 #include "machine.hpp"
 #include "stage.hpp"
 #include "terminal.hpp"
@@ -9,6 +8,8 @@
 
 DigitalOut led1(LED1);
 DigitalOut led3(LED3);
+
+DigitalOut fakeTrigger(A5);
 
 DigitalOut pulseO(LED2);
 Timeout TOOneshot;
@@ -38,9 +39,8 @@ int main()
     initStats();
 
     MA.startEnumeration();
-
-
-    wait(.05);
+    wait(.1);
+    MA.armMachine();
     theTerm.attachParser(parseCommand);
 
     led3=0;
@@ -60,14 +60,42 @@ void parseCommand(string cmd){
   if (strInStr("STAGES",cmd)){ // print all stages
     theTerm.printf("WTF\n");
   }
-  if (strInStr("RESET",cmd)){ // print all stages
+  else if (strInStr("RESET",cmd)){ // print all stages
     theTerm.printf("Resetting Stages\n");
     MA.resetStages();
   }
-  if (strInStr("ENUM",cmd)){ // print all stages
+  else if (strInStr("ENUM",cmd)){ // print all stages
     theTerm.printf("reEnumerating Stages\n");
     MA.startEnumeration();
   }
+  else if (strInStr("STREAM",cmd)){ // print all stages
+    theTerm.printf("Streaming from Stages\n");
+    MA.startStreaming();
+  }
+  else if (strInStr("METER ",cmd)){ // print all stages
+    int stage = stoi(cmd.substr(6));
+    theTerm.printf("metering from Stages\n");
+    MA.startPollingMeters();
+  }
+  else if (strInStr("PING ",cmd)){ // print all stages
+    int stage = stoi(cmd.substr(6));
+    theTerm.printf("pinging from Stages\n");
+    // MA.pingStage(stage);
+  }
+  else if (strInStr("ARM",cmd)){ // print all stages
+    MA.armMachine();
+    theTerm.printf("arming Stages\n");
+    // MA.pingStage(stage);
+  }
+  else if (strInStr("FIRE ",cmd)){ // print all stages
+    int dt = stoi(cmd.substr(5));
+    fakeTrigger=1;
+    theTerm.printf("firing stage 1\n");
+    MA.startFiring();
+    wait(0.001*dt);
+    fakeTrigger=0;
+  }
+
 
 }
 

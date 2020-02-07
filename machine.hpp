@@ -18,14 +18,21 @@
 #include "utilities.hpp"
 
 
-enum STATES{
-   ENUMURATION,
-   ENUMURATION_PENDING,
-   ENUMURATION_STANDBY,
-   STANDBY,
-   LOADED,
-   DISCHARGE
+enum UARTSTATES{
+   u_ENUMURATION,
+   u_ENUMURATION_PENDING,
+   u_ENUMURATION_STANDBY,
+   u_STANDBY,
+   u_TRANSFER,
+
 };
+
+enum STATES{
+   m_STANDBY,
+   m_LOADED,
+   m_DISCHARGE,
+};
+
 class Machine{
     public:
         Machine(PinName,PinName,PinName,PinName);
@@ -36,13 +43,24 @@ class Machine{
         void loaded();
         void discharge();
 
+        void startStreaming();
+        void startPollingMeters();
+        void startEnumeration();
+        void resetStages();
+
         void txByte(char);
         void reportStages();
         void armMachine();
-        void startEnumeration();
+        void startFiring();
+        void fire();
+    private:
         void enumerateStages();
+
+        void streamStages();
+        void pollMeters();
+
         void RxIRQ();
-        void resetStages();
+
         string report();
       // private:
         std::vector<Stage*> stages;
@@ -52,8 +70,9 @@ class Machine{
         DigitalOut *O2;
         Thread maTh;
         EventQueue *maQueue;
-        enum STATES _STATE=STANDBY;
+        enum UARTSTATES _UARTSTATE=u_STANDBY;
         vector<char> rxBuf;
+        int _UARTROUTER=0;
 };
 
 
