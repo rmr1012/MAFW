@@ -16,7 +16,7 @@ Machine::Machine(PinName MTX,PinName MRX,PinName pO1,PinName pO2){
 
   maQueue= new EventQueue(32 * EVENTS_EVENT_SIZE);
   maTh.start(callback(maQueue, &EventQueue::dispatch_forever));
-
+  mainThreadID= ThisThread::get_id();
 };
 
 void Machine::armMachine(){
@@ -29,32 +29,33 @@ void Machine::txByte(char byteout){
   MasterUART->putc(byteout);
   printf("Tx: 0x%2X\n",byteout);
 }
-void Machine::startEnumeration(){
-  stages.clear();
-  maQueue->call(callback(this,&Machine::enumerateStages));
-}
-void Machine::startStreaming(){
-  maQueue->call(callback(this,&Machine::streamStages));
-}
+
 void Machine::streamStages(){
   for (auto stage : stages){
     stage->stream();
   }
 }
-void Machine::startPollingMeters(){
-  maQueue->call(callback(this,&Machine::pollMeters));//dummy
-}
+
 void Machine::pollMeters(){
   for (auto stage : stages){
     printf("%.4f\n m/s",stage->getSpeed());
   }
 }
-void Machine::startFiring(){
-  maQueue->call(callback(this,&Machine::fire));
-}
+
 void Machine::fire(){
   stages[0]->fire();
 }
+uint8_t Machine::readReg(uint8_t stage, uint8_t reg){
+  printf("reading...\n");
+  uint8_t data = stages[stage-1]->readReg(reg);
+  return data;
+}
+void  Machine::writeReg(uint8_t stage, uint8_t reg, uint8_t data){
+  printf("writing...\n");
+  stages[stage-1]->writeReg(reg,data);
+}
+
+
 void Machine::enumerateStages(){
   printf("Starting enumeration\n");
   _UARTSTATE=u_ENUMURATION;
@@ -82,7 +83,7 @@ void Machine::enumerateStages(){
     }
     printf("Stage assigned ID 0x%X\n",asnSlaveID);
     Stage* newStage = new Stage(asnSlaveID,callback(this,&Machine::txByte));
-    newStage->setThread(&maTh);
+    // newStage->setThread(&maTh);
     stages.push_back(newStage);
 
     O1->write(0);
@@ -103,7 +104,8 @@ void Machine::RxIRQ(){
     // rxBuf.push_back(theChar);
     if (_UARTSTATE==u_ENUMURATION){
       if(CK_CMD_PING(theChar)){
-          maTh.flags_set(1);
+          // maTh.flags_set(1);
+          osSignalSet(mainThreadID, 1);
         _UARTSTATE=u_ENUMURATION_PENDING;
       }
       else{
@@ -113,7 +115,8 @@ void Machine::RxIRQ(){
     }
     else if (_UARTSTATE==u_ENUMURATION_PENDING){
       if(CK_CMD_ACK(theChar)){
-         maTh.flags_set(2);
+         // maTh.flags_set(2);
+         osSignalSet(mainThreadID, 2);
          printf("Ack detected\n");
         _UARTSTATE=u_ENUMURATION;
       }
@@ -139,13 +142,7 @@ void Machine::RxIRQ(){
     }
   }
 }
-void xferComplete(){
-  printf("Transfer complete, token returned\n");
 
-}
-void clearBuff(){
-
-}
 
 // void Machine::reportStages(){
 //   printf("   \tStage\tDelay\tWidth\tV\tI\tSpeed\n");

@@ -6,6 +6,7 @@ Stage::Stage(char addr,Callback<void(char)> txfunc):slaveID(addr),txByte(txfunc)
 
   printf("initialized stage\n");
   txByte(TxPack(slaveID,CMD_CONT));
+  stageThId= ThisThread::get_id();
 }
 // these have to be blocking calls
 void Stage::arm(){
@@ -14,7 +15,7 @@ void Stage::arm(){
   _RxState = s_PING;
   ACCEPTING=true;
   txByte(TxPack(slaveID,CMD_ARM));
-  ThisThread::flags_wait_any_for(ACK_FLAG,5);
+  ThisThread::flags_wait_any_for(ACK_FLAG,1);
   ACCEPTING=false;
   if(_RxState!=s_IDLE){
     printf("Waiting for arm %i timeout\n",slaveID);
@@ -31,7 +32,7 @@ void Stage::fire(){
   _RxState = s_PING;
   ACCEPTING=true;
   txByte(TxPack(slaveID,CMD_FIRE));
-  ThisThread::flags_wait_any_for(ACK_FLAG,5);
+  ThisThread::flags_wait_any_for(ACK_FLAG,1);
   ACCEPTING=false;
   if(_RxState!=s_IDLE){
     printf("Waiting for fire %i timeout\n",slaveID);
@@ -61,6 +62,60 @@ void Stage::stream(){
   }
   printf("\nExit strem\n");
 }
+uint8_t Stage::readReg(uint8_t reg){
+  ThisThread::flags_clear(ACK_FLAG);
+  printf("reading stage %i\n",slaveID);
+  _RxState = s_PING;
+  ACCEPTING=true;
+  txByte(TxPack(slaveID,CMD_REGR));
+  ThisThread::flags_wait_any_for(ACK_FLAG,1);
+  ACCEPTING=false;
+  if(_RxState!=s_IDLE){
+    printf("Stage %i Readreg NACK\n",slaveID);
+    return 0x00;//abaort
+  }
+
+  ThisThread::flags_clear(DONE_FLAG);
+  _RxState = s_REGR;
+  ACCEPTING=true;
+  txByte(reg); // send reg addr
+  ThisThread::flags_wait_any_for(DONE_FLAG,1);
+  ACCEPTING=false;
+  if(_RxState!=s_IDLE){
+    printf("Stage %i Readreg data timeout\n",slaveID);
+    return 0x00;//abaort
+  }
+  return regData;
+}
+
+void Stage::writeReg(uint8_t reg , uint8_t data){
+  ThisThread::flags_clear(ACK_FLAG);
+  printf("reading stage %i\n",slaveID);
+  _RxState = s_PING;
+  ACCEPTING=true;
+  txByte(TxPack(slaveID,CMD_REGW));
+  ThisThread::flags_wait_any_for(ACK_FLAG,1);
+  ACCEPTING=false;
+  if(_RxState!=s_IDLE){
+    printf("Stage %i writereg NACK\n",slaveID);
+    return ;//abaort
+  }
+
+  ThisThread::flags_clear(ACK_FLAG);
+  _RxState = s_PING;
+  ACCEPTING=true;
+  
+  txByte(reg); // send reg addr
+  txByte(data); // send reg addr
+
+  ThisThread::flags_wait_any_for(ACK_FLAG,1);
+  ACCEPTING=false;
+  if(_RxState!=s_IDLE){
+    printf("Stage %i writereg NACK\n",slaveID);
+    return ;//abaort
+  }
+  printf("write success\n");
+}
 
 float Stage::getSpeed(){
   ThisThread::flags_clear(DONE_FLAG);
@@ -68,7 +123,7 @@ float Stage::getSpeed(){
   xfCnt=0;
   ACCEPTING=true;
   txByte(TxPack(slaveID,CMD_METER));
-  ThisThread::flags_wait_any_for(DONE_FLAG,5);
+  ThisThread::flags_wait_any_for(DONE_FLAG,1);
   ACCEPTING=false;
   if(_RxState!=s_IDLE){
     printf("Waiting for meter %i timeout\n",slaveID);
@@ -88,10 +143,14 @@ void Stage::processRx(char bytein){
       printf(".");
       if(xfCnt==streamLn){
         _RxState=s_IDLE;
-        stageTh->flags_set(DONE_FLAG);
+        osSignalSet(stageThId,DONE_FLAG);
       }
     }
     xfCnt++;
+  }
+  else if(_RxState == s_REGR){
+    regData=bytein;
+    _RxState=s_IDLE;
   }
   else if(_RxState == s_METERING){
     switch (xfCnt) {
@@ -101,7 +160,7 @@ void Stage::processRx(char bytein){
       case 2:
         meterL=bytein;
         _RxState=s_IDLE;
-        stageTh->flags_set(DONE_FLAG);
+        osSignalSet(stageThId,DONE_FLAG);
         break;
       default:
         break;
@@ -110,7 +169,7 @@ void Stage::processRx(char bytein){
   }
   else if(_RxState == s_PING){
     if (CK_CMD_ACK(bytein)){
-      stageTh->flags_set(ACK_FLAG);
+      osSignalSet(stageThId,ACK_FLAG);
       _RxState=s_IDLE;
       // printf("Stage %i ACK\n",slaveID);
     }
@@ -123,6 +182,6 @@ void Stage::printStats(){
 
 }
 
-void Stage::setThread(Thread* inth){
-  stageTh=inth;
-}
+// void Stage::setThread(Thread* inth){
+//   stageTh=inth;
+// }

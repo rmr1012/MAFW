@@ -60,6 +60,7 @@ enum RxStates{
   s_STREAMING,
   s_METERING,
   s_PING,
+  s_REGR,
   s_IDLE
 };
 
@@ -74,8 +75,9 @@ class Stage{
     void stream();
     float getSpeed();
     void fire();
-    void setThread(Thread*);
-
+    // void setThread(Thread*);
+    uint8_t readReg(uint8_t reg);
+    void writeReg(uint8_t reg, uint8_t data);
     Callback<void(char)> txByte;
     // void armStage();arming is at machine level
 
@@ -87,13 +89,14 @@ class Stage{
     // commands
     int slaveID;
     enum RxStates _RxState = s_IDLE;
-    Thread* stageTh;
+    osThreadId_t stageThId;
 
     uint16_t xfCnt=0;
     uint8_t ADCBuff[128]={0};
     uint8_t streamLn=0;
     uint8_t meterL=0x00;
     uint8_t meterH=0x00;
+    uint8_t regData=0x00;
 
 
 };

@@ -53,7 +53,12 @@ class Machine{
         void armMachine();
         void startFiring();
         void fire();
-    private:
+        uint8_t readReg(uint8_t stage, uint8_t reg);
+        void writeReg(uint8_t stage, uint8_t reg, uint8_t data);
+    // private:
+        uint8_t _readReg(uint8_t stage, uint8_t reg);
+        void _writeReg(uint8_t stage, uint8_t reg, uint8_t data);
+
         void enumerateStages();
 
         void streamStages();
@@ -70,6 +75,7 @@ class Machine{
         DigitalOut *O2;
         Thread maTh;
         EventQueue *maQueue;
+        osThreadId_t mainThreadID;
         enum UARTSTATES _UARTSTATE=u_STANDBY;
         vector<char> rxBuf;
         int _UARTROUTER=0;

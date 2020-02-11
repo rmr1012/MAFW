@@ -21,7 +21,7 @@ void pulseLow(){
 // InterruptIn loadMeter(PC_15);
 
 // EventQueue *queue = mbed_event_queue();
-Machine MA(D1,D0,A1,A0);
+
 serialTerminal theTerm(USBTX,USBRX,115200);// tx, rx
 // Ticker articulator;
 
@@ -30,7 +30,7 @@ serialTerminal theTerm(USBTX,USBRX,115200);// tx, rx
 void parseCommand(string);
 
 
-
+Machine MA(D1,D0,A1,A0);
 
 int main()
 {
@@ -38,7 +38,8 @@ int main()
     printf("hello world\n");
     initStats();
 
-    MA.startEnumeration();
+    // MA.startEnumeration();
+    MA.enumerateStages();
     wait(.1);
     MA.armMachine();
     theTerm.attachParser(parseCommand);
@@ -66,16 +67,16 @@ void parseCommand(string cmd){
   }
   else if (strInStr("ENUM",cmd)){ // print all stages
     theTerm.printf("reEnumerating Stages\n");
-    MA.startEnumeration();
+    MA.enumerateStages();
   }
   else if (strInStr("STREAM",cmd)){ // print all stages
     theTerm.printf("Streaming from Stages\n");
-    MA.startStreaming();
+    MA.streamStages();
   }
   else if (strInStr("METER ",cmd)){ // print all stages
     int stage = stoi(cmd.substr(6));
     theTerm.printf("metering from Stages\n");
-    MA.startPollingMeters();
+    MA.pollMeters();
   }
   else if (strInStr("PING ",cmd)){ // print all stages
     int stage = stoi(cmd.substr(6));
@@ -91,9 +92,23 @@ void parseCommand(string cmd){
     int dt = stoi(cmd.substr(5));
     fakeTrigger=1;
     theTerm.printf("firing stage 1\n");
-    MA.startFiring();
+    MA.fire();
     wait(0.001*dt);
     fakeTrigger=0;
+  }
+  else if (strInStr("READREG ",cmd)){ // print all stages
+    uint8_t stage = stoi(cmd.substr(8,9));
+    uint8_t reg = stoi(cmd.substr(10));
+    theTerm.printf("Reading stage %i reg 0x%X\n",stage,reg);
+    uint8_t data=MA.readReg(stage,reg);
+    printf("data is 0x%X\n",data);
+  }
+  else if (strInStr("WRITEREG ",cmd)){ // print all stages
+    uint8_t stage = stoi(cmd.substr(9,10));
+    uint8_t reg = stoi(cmd.substr(11,12));
+    uint8_t data = stoi(cmd.substr(13));
+    theTerm.printf("Writing stage %i reg 0x%X data 0x%X\n",stage,reg,data);
+    MA.writeReg(stage,reg,data);
   }
 
 
