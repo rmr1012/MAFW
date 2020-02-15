@@ -27,7 +27,7 @@ void Machine::armMachine(){
 
 void Machine::txByte(char byteout){
   MasterUART->putc(byteout);
-  printf("Tx: 0x%2X\n",byteout);
+  // printf("Tx: 0x%2X\n",byteout);
 }
 
 void Machine::streamStages(){
@@ -46,12 +46,12 @@ void Machine::fire(){
   stages[0]->fire();
 }
 uint8_t Machine::readReg(uint8_t stage, uint8_t reg){
-  printf("reading...\n");
+  // printf("reading...\n");
   uint8_t data = stages[stage-1]->readReg(reg);
   return data;
 }
 void  Machine::writeReg(uint8_t stage, uint8_t reg, uint8_t data){
-  printf("writing...\n");
+  // printf("writing...\n");
   stages[stage-1]->writeReg(reg,data);
 }
 
@@ -144,13 +144,28 @@ void Machine::RxIRQ(){
 }
 
 
-// void Machine::reportStages(){
-//   printf("   \tStage\tDelay\tWidth\tV\tI\tSpeed\n");
-//   for(std::vector<int>::size_type i = 0; i != stages.size(); i++) {
-//     printf("%i\t",i);
-//     stages[i]->printStats();
-//   }
-// }
+void Machine::reportStages(){
+  printf("Stage\tv(m/s)\tdN(us)\tdP(us)\tdOff(us)\tSTO(ms)\n");
+  for(auto stage : stages) {
+    stage->report();
+  }
+}
+void Machine::configureStages(int stageConfig[][4]){
+  int index=0;
+  for(auto stage : stages) {
+    stage->setOnDelayN(stageConfig[index][0]);
+    stage->setOnDelayP(stageConfig[index][1]);
+    stage->setOffDelay(stageConfig[index][2]);
+    stage->setSafetyTO(stageConfig[index][3]);
+    index++;
+  }
+}
+void Machine::checkObstacle(){
+  for(auto stage : stages) {
+    uint8_t data = stage->getObstacles();
+    printf("OBSTACLE %X\n",data);
+  }
+}
 //
 // string Machine::report(){
 //   string report="==== STATE MACHINE ====\n";

@@ -18,6 +18,13 @@
 #include <vector>
 #include "terminal.hpp"
 
+#define dTickUs 8
+
+#define REG_ONDELAYN 1
+#define REG_ONDELAYP 2
+#define REG_OFFDELAY 3
+#define REG_SAFETYTO 4
+
 
 #define CMD_PING 0x0f
 #define CK_CMD_PING(data) (CMD_PING==(data&0x0f) ? 1:0)
@@ -43,6 +50,8 @@
 #define CK_CMD_REGR(data) (CMD_REGR==(data&0x0f) ? 1:0)
 #define CMD_REGW 0x0b
 #define CK_CMD_REGW(data) (CMD_REGW==(data&0x0f) ? 1:0)
+#define CMD_OBSTACLE 0x0c
+#define CK_CMD_OBSTACLE(data) (CMD_OBSTACLE==(data&0x0f) ? 1:0)
 
 #define TxPack(TxADDR,TxCMD) ((char)(TxADDR<<4)+TxCMD)
 
@@ -81,13 +90,23 @@ class Stage{
     Callback<void(char)> txByte;
     // void armStage();arming is at machine level
 
+    void setOnDelayN(uint16_t); // in us
+    uint16_t getOnDelayN(); // in us
+    void setOnDelayP(uint16_t); // in us
+    uint16_t getOnDelayP(); // in us
+    void setOffDelay(uint16_t); // in us
+    uint16_t getOffDelay(); // in us
+    void setSafetyTO(uint16_t); // in ms
+    uint16_t getSafetyTO(); // in ms
+
+    uint8_t getObstacles();
 
     bool ACCEPTING=false;
 
 
-    void printStats();
+    void report();
     // commands
-    int slaveID;
+    int slaveID=0;
     enum RxStates _RxState = s_IDLE;
     osThreadId_t stageThId;
 

@@ -20,7 +20,13 @@ void pulseLow(){
 // InterruptIn armSwitch(PB_10);
 // InterruptIn loadMeter(PC_15);
 
-// EventQueue *queue = mbed_event_queue();
+int stagesConfig[5][4]={
+{0,   800,  1200, 10},
+{300, 300,  1000, 10},
+{250, 200,  600, 10},
+{250, 200,  600, 10},
+{250, 200,  600, 10},
+};
 
 serialTerminal theTerm(USBTX,USBRX,115200);// tx, rx
 // Ticker articulator;
@@ -42,6 +48,7 @@ int main()
     MA.enumerateStages();
     wait(.1);
     MA.armMachine();
+    MA.configureStages(stagesConfig);
     theTerm.attachParser(parseCommand);
 
     led3=0;
@@ -59,7 +66,7 @@ int main()
 void parseCommand(string cmd){
 
   if (strInStr("STAGES",cmd)){ // print all stages
-    theTerm.printf("WTF\n");
+    MA.reportStages();
   }
   else if (strInStr("RESET",cmd)){ // print all stages
     theTerm.printf("Resetting Stages\n");
@@ -95,6 +102,9 @@ void parseCommand(string cmd){
     MA.fire();
     wait(0.001*dt);
     fakeTrigger=0;
+  }
+  else if (strInStr("OBSTACLE",cmd)){ // print all stages
+    MA.checkObstacle();
   }
   else if (strInStr("READREG ",cmd)){ // print all stages
     uint8_t stage = stoi(cmd.substr(8,9));

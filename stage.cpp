@@ -39,6 +39,20 @@ void Stage::fire(){
     return ;//abaort
   }
 }
+uint8_t Stage::getObstacles(){
+  ThisThread::flags_clear(ACK_FLAG);
+  printf("reading stage obs %i\n",slaveID);
+  _RxState = s_PING;
+  ACCEPTING=true;
+  txByte(TxPack(slaveID,CMD_OBSTACLE));
+  ThisThread::flags_wait_any_for(ACK_FLAG,1);
+  ACCEPTING=false;
+  if(_RxState!=s_IDLE){
+    printf("Stage %i Readreg obs NACK\n",slaveID);
+    return 0x00;//abaort
+  }
+  return regData;
+}
 
 void Stage::reset(){
   txByte(TxPack(slaveID,CMD_RST));
@@ -64,7 +78,7 @@ void Stage::stream(){
 }
 uint8_t Stage::readReg(uint8_t reg){
   ThisThread::flags_clear(ACK_FLAG);
-  printf("reading stage %i\n",slaveID);
+  // printf("reading stage %i\n",slaveID);
   _RxState = s_PING;
   ACCEPTING=true;
   txByte(TxPack(slaveID,CMD_REGR));
@@ -90,7 +104,7 @@ uint8_t Stage::readReg(uint8_t reg){
 
 void Stage::writeReg(uint8_t reg , uint8_t data){
   ThisThread::flags_clear(ACK_FLAG);
-  printf("reading stage %i\n",slaveID);
+  // printf("reading stage %i\n",slaveID);
   _RxState = s_PING;
   ACCEPTING=true;
   txByte(TxPack(slaveID,CMD_REGW));
@@ -104,7 +118,7 @@ void Stage::writeReg(uint8_t reg , uint8_t data){
   ThisThread::flags_clear(ACK_FLAG);
   _RxState = s_PING;
   ACCEPTING=true;
-  
+
   txByte(reg); // send reg addr
   txByte(data); // send reg addr
 
@@ -178,10 +192,34 @@ void Stage::processRx(char bytein){
     }
   }
 }
-void Stage::printStats(){
-
+void Stage::report(){
+  printf("%i\t%.3f\t%i\t%i\t%i\t%i\n",slaveID,getSpeed(),getOnDelayN(),getOnDelayP(),getOffDelay(),getSafetyTO());
 }
 
-// void Stage::setThread(Thread* inth){
-//   stageTh=inth;
-// }
+void Stage::setOnDelayN(uint16_t xus){
+  writeReg(REG_ONDELAYN,xus/dTickUs);
+} // in us
+uint16_t Stage::getOnDelayN(){
+  uint8_t data=readReg(REG_ONDELAYN);
+  return data*dTickUs;
+} // in us
+void Stage::setOnDelayP(uint16_t xus){
+  writeReg(REG_ONDELAYP,xus/dTickUs);
+} // in us
+uint16_t Stage::getOnDelayP(){
+  uint8_t data=readReg(REG_ONDELAYP);
+  return data*dTickUs;
+} // in us
+void Stage::setOffDelay(uint16_t xus){
+  writeReg(REG_OFFDELAY,xus/dTickUs);
+} // in us
+uint16_t Stage::getOffDelay(){
+  uint8_t data=readReg(REG_OFFDELAY);
+  return data*dTickUs;
+} // in us
+void Stage::setSafetyTO(uint16_t xms){
+  writeReg(REG_SAFETYTO,xms);
+} // in ms
+uint16_t Stage::getSafetyTO(){
+  return readReg(REG_SAFETYTO);
+} // in ms

@@ -48,6 +48,8 @@ class Machine{
         void startEnumeration();
         void resetStages();
 
+        void configureStages(int stageConfig[][4]);
+        void checkObstacle();
         void txByte(char);
         void reportStages();
         void armMachine();
